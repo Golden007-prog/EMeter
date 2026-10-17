@@ -14,4 +14,6 @@ public sealed record ReadingDto(
     string Source,
     string Status,
     List<Guid> EvidenceIds,
-    List<Alert> Alerts);
+    List<Alert> Alerts,
+    string ReviewStatus,
+    int Version);

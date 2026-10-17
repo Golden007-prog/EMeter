@@ -18,6 +18,8 @@ public sealed class GetExtractionHandler(IExtractionJobs jobs) : IRequestHandler
 
 public sealed record ConfirmExtractionCommand(Guid Id, Guid MeterId, Guid? PropertyId, Guid? BillingPeriodId,
     decimal Value, string Unit, DateTimeOffset MeasuredAt, string Source = "Company") : IRequest<CreateConfirmation>;
+public sealed record ConfirmExtractionRequest(Guid MeterId, decimal Value, string Unit, DateTimeOffset MeasuredAt,
+    Guid? PropertyId = null, Guid? BillingPeriodId = null, string Source = "Company");
 
 public sealed class ConfirmExtractionValidator : AbstractValidator<ConfirmExtractionCommand>
 {

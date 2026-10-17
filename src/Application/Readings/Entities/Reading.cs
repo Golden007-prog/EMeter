@@ -14,6 +14,8 @@ public class Reading
     public DateTimeOffset MeasuredAt { get; set; }
     public string Source { get; set; } = "Manual";
     public string Status { get; set; } = "Pending";
+    public string ReviewStatus { get; set; } = "Pending";
+    public int Version { get; set; } = 1;
     public List<Guid> EvidenceIds { get; set; } = [];
     public List<Alert> Alerts { get; set; } = [];
 

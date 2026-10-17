@@ -9,6 +9,8 @@ internal class ReadingConfiguration : IEntityTypeConfiguration<Reading>
     public void Configure(EntityTypeBuilder<Reading> builder)
     {
         _ = builder.HasKey(r => r.Id);
+        builder.Property(r => r.Version).IsConcurrencyToken();
+        builder.Property(r => r.ReviewStatus).HasMaxLength(50).IsRequired();
 
         _ = builder.Property(r => r.Id)
             .ValueGeneratedNever();
@@ -57,6 +59,7 @@ internal class ReadingConfiguration : IEntityTypeConfiguration<Reading>
         {
             _ = alerts.WithOwner().HasForeignKey("ReadingId");
             _ = alerts.HasKey(alert => alert.Id);
+            _ = alerts.Property(alert => alert.Id).ValueGeneratedNever();
             _ = alerts.Property(alert => alert.Message).IsRequired().HasMaxLength(500);
             _ = alerts.Property(alert => alert.Type).IsRequired();
             _ = alerts.Property(alert => alert.Severity).IsRequired();

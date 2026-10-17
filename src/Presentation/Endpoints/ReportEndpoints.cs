@@ -14,7 +14,7 @@ public static class ReportEndpoints
 {
     public static WebApplication MapReportEndpoints(this WebApplication app)
     {
-        var root = app.MapGroup("/api/reports").WithTags("reports");
+        var root = app.MapGroup("/api/reports").WithTags("reports").ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409).ProducesProblem(500);
 
         _ = root.MapGet("/pending-readings", GetPendingReadings)
             .Produces<List<PendingReadingDto>>()
@@ -61,10 +61,11 @@ public static class ReportEndpoints
         Guid condominiumId,
         Guid billingPeriodId,
         ISender sender,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string source = "Resident")
     {
         return TypedResults.Ok(await sender.Send(
-            new GetCondominiumReconciliationQuery(condominiumId, billingPeriodId),
+            new GetCondominiumReconciliationQuery(condominiumId, billingPeriodId, source),
             cancellationToken));
     }
 }

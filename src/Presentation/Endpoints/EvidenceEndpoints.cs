@@ -19,7 +19,7 @@ public static class EvidenceEndpoints
     {
         var root = app.MapGroup("/api/evidence")
             .AddEndpointFilterFactory(ValidationFilter.ValidationFilterFactory)
-            .WithTags("evidence")
+            .WithTags("evidence").ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409).ProducesProblem(500)
             .WithDescription("Upload and manage evidence for meter readings");
 
         _ = root.MapPost("/upload", UploadEvidence)
@@ -56,7 +56,7 @@ public static class EvidenceEndpoints
         {
             if (file == null || file.Length == 0)
             {
-                return TypedResults.Problem("No file provided", "File is required", StatusCodes.Status400BadRequest);
+                return TypedResults.ValidationProblem(new Dictionary<string, string[]> { ["file"] = ["File is required"] });
             }
 
             using var stream = file.OpenReadStream();
@@ -71,7 +71,7 @@ public static class EvidenceEndpoints
         }
     }
 
-    public static async Task<Results<Ok<AttachEvidenceToReadingResponse>, ValidationProblem, NotFound<string>, ProblemHttpResult>> AttachEvidenceToReading(
+    public static async Task<Results<Ok<AttachEvidenceToReadingResponse>, ValidationProblem, ProblemHttpResult>> AttachEvidenceToReading(
         [Validate][FromBody] AttachEvidenceRequest request,
         [FromServices] ISender sender)
     {
@@ -83,7 +83,7 @@ public static class EvidenceEndpoints
         }
         catch (NotFoundException ex)
         {
-            return TypedResults.NotFound(ex.Message);
+            return TypedResults.Problem(statusCode: 404, detail: ex.Message);
         }
         catch (Exception)
         {

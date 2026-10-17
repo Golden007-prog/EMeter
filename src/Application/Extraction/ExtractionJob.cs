@@ -23,6 +23,8 @@ public interface IMeterReadingExtractor
 
 public interface IExtractionJobs
 {
+    Task<Common.Page<ExtractionListItem>> ListAsync(string? status, int page, int pageSize, CancellationToken cancellationToken);
+    Task<ExtractionStatus> RetryAsync(Guid id, CancellationToken cancellationToken);
     Task<ExtractionJob?> GetAsync(Guid id, CancellationToken cancellationToken);
     Task<ExtractionJob?> ClaimAsync(CancellationToken cancellationToken);
     Task CompleteAsync(ExtractionJob job, ExtractedBill result, CancellationToken cancellationToken);
@@ -31,3 +33,4 @@ public interface IExtractionJobs
 }
 
 public sealed record CreateConfirmation(Guid ReadingId);
+public sealed record ExtractionListItem(Guid Id, Guid EvidenceId, string FileName, string Status, int Attempts, string? Error, Guid? ConfirmedReadingId, DateTimeOffset AvailableAt);

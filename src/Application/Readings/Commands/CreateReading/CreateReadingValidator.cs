@@ -29,5 +29,7 @@ public sealed class CreateReadingValidator : AbstractValidator<CreateReadingComm
             .WithMessage("Source is required")
             .MaximumLength(50)
             .WithMessage("Source must not exceed 50 characters");
+        RuleFor(x => x.Source).Must(x => x is "Manual" or "Resident" or "Company" or "OCR");
+        RuleFor(x => x.RequestId).Must(x => x == null || x != Guid.Empty);
     }
 }

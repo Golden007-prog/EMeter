@@ -15,6 +15,9 @@ public sealed record MonthlySummaryDto(
     decimal? ResidentTotal,
     decimal? CompanyTotal,
     decimal? MismatchPercentage,
-    List<UnitConsumptionDto>? TotalsByUnit = null);
+    List<UnitConsumptionDto>? TotalsByUnit = null,
+    int UncalculableReadingCount = 0,
+    List<SourceConsumptionDto>? TotalsBySource = null);
 
 public sealed record UnitConsumptionDto(string Unit, decimal? Resident, decimal? Company);
+public sealed record SourceConsumptionDto(string Source, string Unit, decimal? Consumption, int UncalculableReadingCount);

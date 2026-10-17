@@ -39,3 +39,15 @@ $env:Ocr__BaseUrl='http://localhost:8090/'
 OCR no publica puerto al host por defecto; publica 8090 mediante un override de Compose para esta modalidad. Inicia primero API para aplicar migraciones y crear bucket, después Worker. Los perfiles locales de API usan HTTPS 7032 y HTTP 5032. Dentro de contenedores se usa HTTP 8080; HTTPS debe terminarse en un proxy si se despliega fuera del equipo.
 
 Las migraciones están en Infrastructure/Databases/UtilityMeter/Migrations. Para generar nuevas, usa dotnet-ef 10.0.11 contra Infrastructure (incluye factory de diseño). No uses EnsureCreated junto con migraciones.
+
+## Actualizar esta versión
+
+```powershell
+docker compose up -d --build api worker
+```
+
+La API aplica FrontendWorkflows al arrancar. La migración agrega version, reviewStatus y ReadingRevisions y conserva lecturas y confirmaciones OCR previas. El historial comienza con las operaciones realizadas después de la actualización. No se eliminan registros ni volúmenes.
+
+Los clientes existentes deben adaptar los GET de catálogos al sobre paginado con items y los POST a 201. Los errores son ProblemDetails; la confirmación OCR ya no pide id en el cuerpo. Los campos nulos se incluyen para mantener el contrato OpenAPI.
+
+CORS permite localhost:5173 y 127.0.0.1:5173 por defecto; se reemplaza con Cors:AllowedOrigins. El alcance continúa siendo local de un usuario, sin autenticación. La interfaz React se implementará sobre estos contratos.

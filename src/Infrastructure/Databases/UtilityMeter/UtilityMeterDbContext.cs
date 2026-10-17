@@ -19,6 +19,7 @@ internal class UtilityMeterDbContext(DbContextOptions<UtilityMeterDbContext> opt
     public DbSet<Meter> Meters { get; set; }
     public DbSet<BillingPeriod> BillingPeriods { get; set; }
     public DbSet<Reading> Readings { get; set; }
+    public DbSet<Application.Readings.ReadingRevision> ReadingRevisions { get; set; }
     public DbSet<Evidence> Evidence { get; set; }
 
     public DbSet<Application.Extraction.ExtractionJob> ExtractionJobs { get; set; }
@@ -26,6 +27,14 @@ internal class UtilityMeterDbContext(DbContextOptions<UtilityMeterDbContext> opt
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Application.Readings.ReadingRevision>(revision =>
+        {
+            revision.HasKey(x => x.Id);
+            revision.HasIndex(x => new { x.ReadingId, x.ChangedAt });
+            revision.Property(x => x.Reason).HasMaxLength(1000);
+            revision.Property(x => x.Action).HasMaxLength(50);
+            revision.HasOne<Reading>().WithMany().HasForeignKey(x => x.ReadingId);
+        });
         modelBuilder.Entity<Application.Extraction.ExtractionJob>(job =>
         {
             job.HasKey(x => x.Id);

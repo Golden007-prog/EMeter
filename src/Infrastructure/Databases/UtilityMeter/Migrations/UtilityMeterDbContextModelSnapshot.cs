@@ -283,6 +283,11 @@ namespace CleanMinimalApi.Databases.UtilityMeter.Migrations
                     b.Property<Guid?>("PropertyId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ReviewStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -302,6 +307,10 @@ namespace CleanMinimalApi.Databases.UtilityMeter.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BillingPeriodId");
@@ -311,6 +320,42 @@ namespace CleanMinimalApi.Databases.UtilityMeter.Migrations
                     b.HasIndex("PropertyId");
 
                     b.ToTable("Readings");
+                });
+
+            modelBuilder.Entity("CleanMinimalApi.Application.Readings.ReadingRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("AfterJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("BeforeJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ReadingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReadingId", "ChangedAt");
+
+                    b.ToTable("ReadingRevisions");
                 });
 
             modelBuilder.Entity("CleanMinimalApi.Application.Extraction.ExtractionJob", b =>
@@ -364,6 +409,15 @@ namespace CleanMinimalApi.Databases.UtilityMeter.Migrations
                         });
 
                     b.Navigation("Alerts");
+                });
+
+            modelBuilder.Entity("CleanMinimalApi.Application.Readings.ReadingRevision", b =>
+                {
+                    b.HasOne("CleanMinimalApi.Application.Readings.Entities.Reading", null)
+                        .WithMany()
+                        .HasForeignKey("ReadingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -52,6 +52,15 @@ public class DurableExtractionTests
         await queue1.FailAsync(lastLease, "permanent failure", default);
         (await queue1.GetAsync(job.Id, default))!.Status.ShouldBe("Failed");
         (await queue2.ClaimAsync(default)).ShouldBeNull();
+        var inbox = await queue1.ListAsync("Failed", 1, 50, default);
+        inbox.Items.Single().FileName.ShouldBe("bill.pdf");
+        var retry = await queue1.RetryAsync(job.Id, default);
+        retry.Status.ShouldBe("Queued");
+        retry.Attempts.ShouldBe(0);
+        retry.Error.ShouldBeNull();
+        await Should.ThrowAsync<InvalidOperationException>(() => queue2.RetryAsync(job.Id, default));
+        await queue1.CompleteAsync(lastLease, new("stale", [], null, "test"), default);
+        (await queue1.GetAsync(job.Id, default))!.Status.ShouldBe("Queued");
 
         // A reviewed proposal creates exactly one reading, including under concurrent confirmation.
         await first.ExtractionJobs.Where(x => x.Id == job.Id).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "NeedsReview"));

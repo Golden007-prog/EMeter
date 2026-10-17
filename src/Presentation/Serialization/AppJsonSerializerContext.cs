@@ -17,8 +17,9 @@ using Requests;
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     PropertyNameCaseInsensitive = true,
+    RespectRequiredConstructorParameters = true,
     WriteIndented = false,
     GenerationMode = JsonSourceGenerationMode.Default)]
 [JsonSerializable(typeof(Application.Extraction.ExtractionJob))]
@@ -50,6 +51,26 @@ using Requests;
 [JsonSerializable(typeof(AttachEvidenceToReadingResponse))]
 [JsonSerializable(typeof(EvidenceDto))]
 [JsonSerializable(typeof(List<EvidenceDto>))]
+[JsonSerializable(typeof(Application.Catalog.OrganizationDto))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Catalog.OrganizationDto>))]
+[JsonSerializable(typeof(Application.Catalog.CondominiumDto))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Catalog.CondominiumDto>))]
+[JsonSerializable(typeof(Application.Catalog.PropertyDto))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Catalog.PropertyDto>))]
+[JsonSerializable(typeof(Application.Catalog.MeterDto))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Catalog.MeterDto>))]
+[JsonSerializable(typeof(Application.Catalog.BillingPeriodDto))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Catalog.BillingPeriodDto>))]
+[JsonSerializable(typeof(Application.Catalog.UpdateOrganization))]
+[JsonSerializable(typeof(Application.Catalog.UpdateAddress))]
+[JsonSerializable(typeof(Application.Catalog.UpdateMeter))]
+[JsonSerializable(typeof(Application.Catalog.UpdateBillingPeriod))]
+[JsonSerializable(typeof(Application.Readings.UpdateReadingRequest))]
+[JsonSerializable(typeof(Application.Readings.ReviewReadingRequest))]
+[JsonSerializable(typeof(Application.Readings.VoidReadingRequest))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Readings.ReadingRevisionDto>))]
+[JsonSerializable(typeof(Application.Common.Page<Application.Extraction.ExtractionListItem>))]
+[JsonSerializable(typeof(Application.Extraction.ConfirmExtractionRequest))]
 public partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

@@ -21,7 +21,9 @@ public static class ReadingMappingExtensions
             reading.Source,
             reading.Status,
             reading.EvidenceIds,
-            reading.Alerts);
+            reading.Alerts,
+            reading.ReviewStatus,
+            reading.Version);
     }
 
     public static List<ReadingDto> ToDtoList(this IEnumerable<Reading> readings)

@@ -22,8 +22,17 @@ public static class ReadingEndpoints
     {
         var root = app.MapGroup("/api/readings")
             .AddEndpointFilterFactory(ValidationFilter.ValidationFilterFactory)
-            .WithTags("readings")
+            .WithTags("readings").ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409).ProducesProblem(500)
             .WithDescription("Create and retrieve utility meter readings");
+
+        root.MapPut("/{id:guid}", async (Guid id, Application.Readings.UpdateReadingRequest request, Application.Readings.IReadingWorkflow workflow, CancellationToken ct) =>
+            await workflow.UpdateAsync(id, request, ct)).Produces<ReadingDto>().ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409);
+        root.MapPost("/{id:guid}/review", async (Guid id, Application.Readings.ReviewReadingRequest request, Application.Readings.IReadingWorkflow workflow, CancellationToken ct) =>
+            await workflow.ReviewAsync(id, request, ct)).Produces<ReadingDto>().ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409);
+        root.MapPost("/{id:guid}/void", async (Guid id, Application.Readings.VoidReadingRequest request, Application.Readings.IReadingWorkflow workflow, CancellationToken ct) =>
+            await workflow.VoidAsync(id, request, ct)).Produces<ReadingDto>().ProducesValidationProblem().ProducesProblem(404).ProducesProblem(409);
+        root.MapGet("/{id:guid}/history", async (Guid id, Application.Readings.IReadingWorkflow workflow, CancellationToken ct, int page = 1, int pageSize = 50) =>
+            await workflow.HistoryAsync(id, page, pageSize, ct)).ProducesProblem(404);
 
         _ = root.MapPost("/", CreateReading)
             .Produces<CreateReadingResponse>(StatusCodes.Status201Created)
@@ -75,7 +84,7 @@ public static class ReadingEndpoints
                 request.Value,
                 request.Unit,
                 request.MeasuredAt,
-                request.Source);
+                request.Source, request.RequestId);
 
             var result = await sender.Send(command);
             return TypedResults.Created($"/api/readings/{result.Id}", result);
@@ -86,7 +95,7 @@ public static class ReadingEndpoints
         }
     }
 
-    public static async Task<Results<Ok<ReadingDto>, NotFound<string>, ProblemHttpResult>> GetReadingById(
+    public static async Task<Results<Ok<ReadingDto>, ProblemHttpResult>> GetReadingById(
         [Validate][FromRoute] Guid id,
         [FromServices] ISender sender)
     {
@@ -98,7 +107,7 @@ public static class ReadingEndpoints
         }
         catch (NotFoundException ex)
         {
-            return TypedResults.NotFound(ex.Message);
+            return TypedResults.Problem(statusCode: 404, detail: ex.Message);
         }
         catch (Exception)
         {

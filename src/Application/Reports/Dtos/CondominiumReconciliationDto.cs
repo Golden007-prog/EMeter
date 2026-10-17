@@ -11,7 +11,7 @@ public sealed record CondominiumReconciliationDto(
     Guid BillingPeriodId,
     decimal? MainConsumption,
     decimal SubMeterConsumption,
-    decimal Difference,
+    decimal? Difference,
     decimal? DifferencePercentage,
     IReadOnlyList<CondominiumPropertyIssueDto> Suspects,
-    string Explanation);
+    string Explanation, string Source, string? Unit, bool IsComplete);

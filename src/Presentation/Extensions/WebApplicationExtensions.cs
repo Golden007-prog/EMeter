@@ -11,6 +11,11 @@ public static class WebApplicationExtensions
     public static WebApplication ConfigureApplication(this WebApplication app)
     {
         app.UseMiddleware<ApiExceptionMiddleware>();
+        app.UseStatusCodePages(async status =>
+        {
+            await Results.Problem(statusCode: status.HttpContext.Response.StatusCode).ExecuteAsync(status.HttpContext);
+        });
+        app.UseCors();
         app.MapExtractionEndpoints();
         app.MapCatalogEndpoints();
         app.MapGet("/health", () => Results.Ok(new { status = "ok" })).ExcludeFromDescription();

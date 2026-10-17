@@ -20,6 +20,9 @@ internal sealed class EntityFrameworkCondominiumReconciliationRepository(Utility
             return null;
         }
 
+        if (!await context.BillingPeriods.AnyAsync(x => x.Id == billingPeriodId, cancellationToken))
+            throw new Application.Common.Exceptions.NotFoundException("Billing period not found");
+
         var properties = await this.context.Properties
             .Where(property => property.CondominiumId == condominiumId || condominium.PropertyIds.Contains(property.Id))
             .ToListAsync(cancellationToken);

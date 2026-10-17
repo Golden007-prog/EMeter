@@ -1,6 +1,7 @@
 namespace CleanMinimalApi.Application.BillingPeriods.Entities;
 
 using CleanMinimalApi.Application.Common.Enums;
+using CleanMinimalApi.Application.Common.Exceptions;
 
 public class BillingPeriod
 {
@@ -14,7 +15,7 @@ public class BillingPeriod
     {
         if (this.IsImmutable)
         {
-            throw new InvalidOperationException("Closed billing periods are immutable.");
+            throw new ConflictException("Closed billing periods are immutable.");
         }
 
         this.Status = status;

@@ -14,7 +14,7 @@ El primer build descarga dependencias y construye MinIO desde código comunitari
 
 ## Flujo HTTP
 
-1. Crea organización y condominio opcionales, propiedad y medidor mediante los POST de catálogos en Swagger. Crea un período si lo necesitas. Sus GET devuelven hasta 1000 registros. PUT permite asignar medidor principal y cambiar estado de período; un período cerrado no admite nuevas lecturas.
+1. Crea organización y condominio opcionales, propiedad y medidor mediante los POST de catálogos en Swagger. Crea un período si lo necesitas. Sus GET devuelven páginas con items, pageNumber, pageSize, totalCount y hasNextPage; hay filtros y consultas de detalle. PUT permite asignar medidor principal y cambiar estado de período; un período cerrado no admite nuevas lecturas.
 2. `POST /api/evidence/upload` con multipart `file` (JPEG, PNG o PDF, máximo 20 MiB). Responde **202** con `id`, `extractionId`, `status`, `fileName`, `storageKey`, `hash` y `Location: /api/extractions/{extractionId}`. La carga del archivo termina dentro de la petición; el OCR corre después.
 3. `GET /api/extractions/{id}` devuelve `Queued`, `Processing`, `NeedsReview`, `Failed` o `Confirmed`. `result` contiene `text`, `fields`, `confidence` y `engine`. El valor de confianza es del reconocimiento de texto, no una probabilidad de corrección de los campos; puede ser nulo.
 4. Revisa y corrige los valores. `POST /api/extractions/{id}/confirm` crea la lectura y la asocia al original. Confirmaciones repetidas o concurrentes devuelven el mismo `readingId`. La lectura queda `Confirmed`, o `Warning` si las reglas detectaron anomalías.
@@ -48,7 +48,7 @@ Nunca se crean lecturas automáticamente a partir del OCR. Los resultados origin
 
 Evidencia y trabajo se insertan en una misma operación `SaveChanges` transaccional de PostgreSQL. Si falla el registro después de subir el objeto, se intenta eliminarlo. Una interrupción del proceso entre ambas operaciones aún puede dejar un objeto huérfano: no existe transacción distribuida.
 
-La adquisición usa `UPDATE ... FOR UPDATE SKIP LOCKED`. Cada intento recibe token y lease de 10 minutos; los resultados de tokens anteriores no pueden sobrescribir el actual. Hay hasta 3 intentos con espera incremental; los trabajos abandonados se recuperan al vencer su lease. Tras el límite quedan `Failed`, con error consultable. No hay endpoint de reintento manual todavía.
+La adquisición usa `UPDATE ... FOR UPDATE SKIP LOCKED`. Cada intento recibe token y lease de 10 minutos; los resultados de tokens anteriores no pueden sobrescribir el actual. Hay hasta 3 intentos con espera incremental; los trabajos abandonados se recuperan al vencer su lease. Tras el límite quedan `Failed`, con error consultable. GET /api/extractions recupera la bandeja por estado. POST /api/extractions/{id}/retry reencola exclusivamente un trabajo Failed, reinicia sus intentos y revoca el lease anterior sin subir nuevamente el original.
 
 La confirmación bloquea el trabajo, crea lectura, asocia evidencia y marca `Confirmed` en una transacción. No se deben ejecutar procesos API con proveedores de almacenamiento o bases diferentes de los del Worker.
 

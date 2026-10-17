@@ -20,7 +20,7 @@ public sealed class GetPendingReadingsHandler(IReadingsRepository readingsReposi
                 : await this.readingsRepository.GetAllAsync(cancellationToken);
 
         return [.. readings
-            .Where(reading => reading.Status == "Pending" && (!request.PropertyId.HasValue || reading.PropertyId == request.PropertyId))
+            .Where(reading => reading.ReviewStatus == "Pending" && (!request.PropertyId.HasValue || reading.PropertyId == request.PropertyId))
             .Select(reading => new PendingReadingDto(reading.Id, reading.PropertyId, reading.MeterId, reading.BillingPeriodId, reading.MeasuredAt))];
     }
 }

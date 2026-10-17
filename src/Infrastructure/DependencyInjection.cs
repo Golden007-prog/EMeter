@@ -24,11 +24,14 @@ public static class DependencyInjection
         var memoryName = $"UtilityMeter-{Guid.NewGuid()}";
         services.AddDbContext<UtilityMeterDbContext>(options =>
         {
-            if (string.IsNullOrWhiteSpace(connection)) options.UseInMemoryDatabase(memoryName);
-            else options.UseNpgsql(connection);
+            if (string.IsNullOrWhiteSpace(connection))
+                options.UseInMemoryDatabase(memoryName);
+            else
+                options.UseNpgsql(connection);
         });
         services.AddScoped<Application.Catalog.ICatalogRepository, EntityFrameworkCatalogRepository>();
         services.AddScoped<IReadingsRepository, EntityFrameworkReadingsRepository>();
+        services.AddScoped<IReadingWorkflow, EntityFrameworkReadingWorkflow>();
         services.AddScoped<IEvidenceRepository, EntityFrameworkEvidenceRepository>();
         services.AddScoped<ICondominiumReconciliationRepository, EntityFrameworkCondominiumReconciliationRepository>();
         services.AddScoped<IExtractionJobs, PostgresExtractionJobs>();
@@ -41,7 +44,8 @@ public static class DependencyInjection
             services.AddSingleton<IMinioClient>(client);
             services.AddSingleton<IObjectStorage>(new MinioObjectStorage(client, configuration["Storage:Bucket"] ?? "evidence"));
         }
-        else services.AddSingleton<IObjectStorage, InMemoryObjectStorage>();
+        else
+            services.AddSingleton<IObjectStorage, InMemoryObjectStorage>();
         services.AddHttpClient<IMeterReadingExtractor, HttpMeterReadingExtractor>(client =>
         {
             client.BaseAddress = new Uri(configuration?["Ocr:BaseUrl"] ?? "http://localhost:8090/");

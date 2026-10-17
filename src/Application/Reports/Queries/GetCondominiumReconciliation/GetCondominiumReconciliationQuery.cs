@@ -4,7 +4,7 @@ using CleanMinimalApi.Application.Reports;
 using CleanMinimalApi.Application.Reports.Dtos;
 using MediatR;
 
-public sealed record GetCondominiumReconciliationQuery(Guid CondominiumId, Guid BillingPeriodId)
+public sealed record GetCondominiumReconciliationQuery(Guid CondominiumId, Guid BillingPeriodId, string Source = "Resident")
     : IRequest<CondominiumReconciliationDto>;
 
 public sealed class GetCondominiumReconciliationHandler(ICondominiumReconciliationRepository repository)
@@ -17,8 +17,8 @@ public sealed class GetCondominiumReconciliationHandler(ICondominiumReconciliati
         CancellationToken cancellationToken)
     {
         var data = await this.repository.GetAsync(request.CondominiumId, request.BillingPeriodId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Condominium with id {request.CondominiumId} was not found.");
-        var result = CondominiumReconciliationCalculator.Calculate(data, request.BillingPeriodId);
+            ?? throw new Common.Exceptions.NotFoundException($"Condominium with id {request.CondominiumId} was not found.");
+        var result = CondominiumReconciliationCalculator.Calculate(data, request.BillingPeriodId, request.Source);
 
         return new CondominiumReconciliationDto(
             result.CondominiumId,
@@ -32,6 +32,6 @@ public sealed class GetCondominiumReconciliationHandler(ICondominiumReconciliati
                 issue.PropertyName,
                 issue.Consumption,
                 issue.Reasons)).ToList(),
-            result.Explanation);
+            result.Explanation, result.Source, result.Unit, result.IsComplete);
     }
 }

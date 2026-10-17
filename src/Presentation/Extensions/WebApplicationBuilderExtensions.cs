@@ -46,8 +46,9 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.Configure<JsonOptions>(opt =>
         {
             opt.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-            opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
             opt.SerializerOptions.PropertyNameCaseInsensitive = true;
+            opt.SerializerOptions.RespectRequiredConstructorParameters = true;
             opt.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             opt.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
             opt.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
@@ -96,6 +97,10 @@ public static class WebApplicationBuilderExtensions
         #endregion Validation
 
         #region Project Dependencies
+
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173", "http://127.0.0.1:5173"];
+        builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+            policy.WithOrigins(origins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "OPTIONS").WithExposedHeaders("Location")));
 
         _ = builder.Services.AddInfrastructure(builder.Configuration);
         _ = builder.Services.AddApplication();

@@ -18,7 +18,7 @@ public sealed class GetAbnormalReadingsHandler(IReadingsRepository readingsRepos
             : await this.readingsRepository.GetAllAsync(cancellationToken);
 
         return [.. readings
-            .Where(reading => reading.Alerts.Count > 0)
+            .Where(reading => ReadingTimeline.IsActive(reading) && reading.Alerts.Count > 0)
             .Select(reading => new AbnormalReadingDto(reading.Id, reading.PropertyId, reading.MeterId, reading.BillingPeriodId, reading.Alerts))];
     }
 }

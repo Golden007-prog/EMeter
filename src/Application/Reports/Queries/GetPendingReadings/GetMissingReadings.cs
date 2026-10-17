@@ -15,7 +15,7 @@ public sealed class GetMissingReadingsHandler(ICatalogRepository catalog, IReadi
     {
         if (await catalog.FindAsync<BillingPeriods.Entities.BillingPeriod>(request.BillingPeriodId, cancellationToken) == null)
             throw new NotFoundException("Billing period not found");
-        var present = (await readings.GetByBillingPeriodIdAsync(request.BillingPeriodId, cancellationToken)).Select(x => x.MeterId).ToHashSet();
+        var present = (await readings.GetByBillingPeriodIdAsync(request.BillingPeriodId, cancellationToken)).Where(ReadingTimeline.IsActive).Select(x => x.MeterId).ToHashSet();
         return (await catalog.ListAsync<Meter>(cancellationToken))
             .Where(x => (request.PropertyId == null || x.PropertyId == request.PropertyId) && !present.Contains(x.Id))
             .Select(x => new MissingReadingDto(x.Id, x.PropertyId, request.BillingPeriodId, x.Unit, x.SerialNumber)).ToList();

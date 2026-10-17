@@ -10,6 +10,6 @@ public sealed record CreateReadingCommand(
     decimal Value,
     string Unit,
     DateTimeOffset MeasuredAt,
-    string Source = "Manual") : IRequest<CreateReadingResponse>;
+    string Source = "Manual", Guid? RequestId = null) : IRequest<CreateReadingResponse>;
 
 public sealed record CreateReadingResponse(Guid Id, decimal Value, string Status);

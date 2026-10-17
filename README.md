@@ -6,7 +6,9 @@ Está construido con .NET 10, ASP.NET Core Minimal APIs, MediatR y Entity Framew
 
 ## Estado actual
 
-- Creación y consulta de lecturas por medidor, propiedad y período.
+- Creación, revisión, corrección y anulación de lecturas con auditoría, versiones y recálculo de históricos.
+- Catálogos con detalle, edición de metadatos, filtros y paginación; CORS configurable para React.
+- Bandeja OCR recuperable y reintento manual de trabajos fallidos.
 - Detección de lecturas decrecientes y consumos superiores al promedio histórico.
 - Carga de archivos con hash SHA-256 y asociación a lecturas.
 - Reportes de lecturas pendientes, anomalías, resumen mensual y conciliación de condominios.
@@ -37,6 +39,7 @@ python -m unittest discover -s services/ocr -v
 | --- | --- |
 | [Índice](docs/README.md) | Mapa de documentación y alcance |
 | [Ejecución y configuración](docs/RUN.md) | SDK, API, Worker, entornos y contenedores |
+| [Base funcional para React](docs/FRONTEND.md) | Flujos de usabilidad, integración y validación del prototipo local |
 | [Referencia de API](docs/API.md) | Rutas, contratos, ejemplos y errores actuales |
 | [Dominio y reglas](docs/DOMAIN.md) | Entidades, consumo, alertas y conciliación |
 | [Arquitectura](docs/ARCHITECTURE.md) | Proyectos, dependencias, persistencia y extensión |
