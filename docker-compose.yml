@@ -1,29 +1,97 @@
-version: "3.9"
 services:
-    api:
-      build:
-        context: .
-        target: run
-        args:
-          VERSION_PREFIX: 1.0.0.0
-          VERSION_SUFFIX: docker
-      ports:
-          - "8080:80"
-          - "8081:443"
-      environment:
-        DOTNET_ENVIRONMENT: docker
-      networks:
-        - cleanminimalapi_network
-      depends_on:
-        - seq
-    seq:
-      image: datalust/seq:latest
-      ports:
-        - "5341:80"
-      environment:
-        ACCEPT_EULA: Y
-      networks:
-        - cleanwebapi_network
-networks:
-  cleanwebapi_network:
-    driver: bridge
+  api:
+    build:
+      context: .
+      target: run
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment: &backend
+      DOTNET_ENVIRONMENT: docker
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__UtilityMeter: Host=postgres;Database=utilitymeter;Username=utilitymeter;Password=${POSTGRES_PASSWORD:-utilitymeter-local}
+      Storage__Endpoint: minio:9000
+      Storage__AccessKey: ${MINIO_ROOT_USER:-utilitymeter}
+      Storage__SecretKey: ${MINIO_ROOT_PASSWORD:-utilitymeter-local-secret}
+      Storage__Bucket: evidence
+      Ocr__BaseUrl: http://ocr:8090/
+      Seq__Url: http://seq:80
+      Serilog__WriteTo__0__Args__serverUrl: http://seq:80
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      seq:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      target: worker
+    environment: *backend
+    depends_on:
+      api:
+        condition: service_healthy
+      ocr:
+        condition: service_healthy
+    restart: unless-stopped
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: utilitymeter
+      POSTGRES_USER: utilitymeter
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-utilitymeter-local}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U utilitymeter -d utilitymeter"]
+      interval: 5s
+      retries: 20
+  minio:
+    build: services/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-utilitymeter}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-utilitymeter-local-secret}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      retries: 20
+  ocr:
+    build: services/ocr
+    environment:
+      OCR_ENGINE: ${OCR_ENGINE:-paddle}
+    volumes:
+      - ocr-models:/root/.paddlex
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8090/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+  seq:
+    image: datalust/seq:2025.2
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true"
+    ports:
+      - "127.0.0.1:5341:80"
+    volumes:
+      - seq-data:/data
+volumes:
+  postgres-data:
+  minio-data:
+  ocr-models:
+  seq-data:

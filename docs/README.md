@@ -8,4 +8,6 @@ Estas guías describen el código del repositorio. Las funcionalidades futuras s
 4. [Arquitectura](ARCHITECTURE.md): ubicar responsabilidades y puntos de extensión.
 5. [Operación y desarrollo](OPERATIONS.md): ejecutar pruebas, diagnosticar fallos y revisar límites actuales.
 
+6. [OCR y boletas](OCR.md): almacenamiento, trabajos durables, revisión y pruebas completas.
+
 Para comenzar, consulta el [README principal](../README.md). Los [planes](../.github/plans/README.md) y las [instrucciones del proyecto](../.github/copilot-instructions.md) contienen objetivos de evolución; la presencia de un objetivo allí no significa que ya esté disponible por HTTP.

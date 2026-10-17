@@ -1,17 +1,27 @@
 namespace CleanMinimalApi.Worker;
 
-using System.Threading;
-using System.Threading.Tasks;
-using CleanMinimalApi.Application.BackgroundJobs;
-using Microsoft.Extensions.Hosting;
+using Application.Extraction;
+using MediatR;
 
-public sealed class QueuedBackgroundWorker(IBackgroundJobQueue jobQueue) : BackgroundService
+public sealed class QueuedBackgroundWorker(IServiceScopeFactory scopes, ILogger<QueuedBackgroundWorker> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await foreach (var job in jobQueue.DequeueAsync(stoppingToken))
+        while (!stoppingToken.IsCancellationRequested)
         {
-            await job.WorkItem(stoppingToken);
+            try
+            {
+                using var scope = scopes.CreateScope();
+                var job = await scope.ServiceProvider.GetRequiredService<IExtractionJobs>().ClaimAsync(stoppingToken);
+                if (job == null) await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                else await scope.ServiceProvider.GetRequiredService<ISender>().Send(new ProcessExtractionCommand(job), stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Extraction worker iteration failed");
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            }
         }
     }
 }

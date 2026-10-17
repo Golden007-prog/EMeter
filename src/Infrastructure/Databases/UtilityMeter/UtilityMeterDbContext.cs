@@ -21,9 +21,19 @@ internal class UtilityMeterDbContext(DbContextOptions<UtilityMeterDbContext> opt
     public DbSet<Reading> Readings { get; set; }
     public DbSet<Evidence> Evidence { get; set; }
 
+    public DbSet<Application.Extraction.ExtractionJob> ExtractionJobs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Application.Extraction.ExtractionJob>(job =>
+        {
+            job.HasKey(x => x.Id);
+            job.HasIndex(x => x.EvidenceId).IsUnique();
+            job.HasIndex(x => new { x.Status, x.AvailableAt });
+            job.Property(x => x.ResultJson).HasColumnType("jsonb");
+            job.HasOne<Evidence>().WithMany().HasForeignKey(x => x.EvidenceId);
+        });
 
         _ = modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }

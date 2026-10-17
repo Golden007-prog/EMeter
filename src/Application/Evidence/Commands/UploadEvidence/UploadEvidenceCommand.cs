@@ -7,4 +7,8 @@ public sealed record UploadEvidenceCommand(
     string ContentType,
     Stream Content) : IRequest<UploadEvidenceResponse>;
 
-public sealed record UploadEvidenceResponse(Guid Id, string FileName, string StorageKey, string Hash);
+public sealed record UploadEvidenceResponse(Guid Id, string FileName, string StorageKey, string Hash)
+{
+    public Guid ExtractionId => this.Id;
+    public string Status => "Queued";
+}

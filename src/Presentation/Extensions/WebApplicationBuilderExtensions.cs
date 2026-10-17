@@ -87,13 +87,17 @@ public static class WebApplicationBuilderExtensions
 
         #region Validation
 
+        builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+            options.MultipartBodyLengthLimit = 21 * 1024 * 1024);
+        builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 22 * 1024 * 1024);
+
         _ = builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), ServiceLifetime.Singleton);
 
         #endregion Validation
 
         #region Project Dependencies
 
-        _ = builder.Services.AddInfrastructure();
+        _ = builder.Services.AddInfrastructure(builder.Configuration);
         _ = builder.Services.AddApplication();
 
         #endregion Project Dependencies

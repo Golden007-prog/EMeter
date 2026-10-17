@@ -10,6 +10,11 @@ public static class WebApplicationExtensions
 {
     public static WebApplication ConfigureApplication(this WebApplication app)
     {
+        app.UseMiddleware<ApiExceptionMiddleware>();
+        app.MapExtractionEndpoints();
+        app.MapCatalogEndpoints();
+        app.MapGet("/health", () => Results.Ok(new { status = "ok" })).ExcludeFromDescription();
+
         #region Logging
 
         _ = app.UseHttpLogging();

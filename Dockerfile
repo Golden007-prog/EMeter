@@ -51,7 +51,17 @@ RUN dotnet publish ./src/**/Presentation.csproj --no-restore -c Release -v quiet
 
 # Runtime Image
 FROM ${BASE_IMAGE_REPO}/${BASE_IMAGE_RUNTIME}:${BASE_IMAGE_RUNTIME_TAG} AS run
+RUN apk add --no-cache krb5-libs
 WORKDIR /
 EXPOSE 80
 COPY --from=publish /sln/app .
 ENTRYPOINT ["dotnet", "Presentation.dll"]
+
+FROM build AS publish-worker
+RUN dotnet publish src/Worker/Worker.csproj --no-restore -c Release -o /worker
+
+FROM ${BASE_IMAGE_REPO}/${BASE_IMAGE_RUNTIME}:${BASE_IMAGE_RUNTIME_TAG} AS worker
+RUN apk add --no-cache krb5-libs
+WORKDIR /app
+COPY --from=publish-worker /worker .
+ENTRYPOINT ["dotnet", "Worker.dll"]

@@ -10,26 +10,25 @@ Está construido con .NET 10, ASP.NET Core Minimal APIs, MediatR y Entity Framew
 - Detección de lecturas decrecientes y consumos superiores al promedio histórico.
 - Carga de archivos con hash SHA-256 y asociación a lecturas.
 - Reportes de lecturas pendientes, anomalías, resumen mensual y conciliación de condominios.
-- Worker con una cola de trabajos en memoria.
+- Worker con cola durable PostgreSQL, leases y reintentos.
 
-**Los datos, archivos y trabajos se mantienen en memoria y se pierden al reiniciar.** API y Worker ejecutados por separado no comparten almacenamiento ni cola. No hay autenticación, migraciones, datos iniciales ni endpoints de administración de organizaciones, condominios, propiedades, medidores o períodos. La conciliación necesita que esas entidades se carguen desde código. Consulta las [limitaciones conocidas](docs/OPERATIONS.md).
+**El stack Docker persiste en PostgreSQL y MinIO y procesa OCR en un Worker separado.** Incluye extracción local PaddleOCR/Tesseract, consulta de estado y confirmación humana idempotente. Sigue siendo un prototipo local sin autenticación. Consulta [flujo completo y límites](docs/OCR.md). Sin configuración externa, la ejecución .NET conserva un modo InMemory para desarrollo manual.
 
 ## Inicio rápido
 
-Requiere el SDK .NET 10 compatible con [global.json](global.json). Ejecuta desde la raíz del repositorio:
+Para el flujo persistente con OCR, requiere Docker:
 
 ```powershell
-dotnet restore CleanMinimalApi.sln
-dotnet build CleanMinimalApi.sln --no-restore
-dotnet run --project src/Presentation
+docker compose up -d --build
 ```
 
-El perfil local expone Swagger en <https://localhost:7032/swagger> y OpenAPI en <https://localhost:7032/openapi/v1.json>. También escucha en `http://localhost:5032`, con redirección a HTTPS. Si necesitas confiar en el certificado local: `dotnet dev-certs https --trust`.
+Abre Swagger en <http://localhost:8080/swagger>. Las credenciales y variables locales están en `.env.example`. La primera construcción y descarga de modelos puede tardar varios minutos. Consulta [OCR](docs/OCR.md) para subir, revisar y confirmar una boleta, y [Ejecución](docs/RUN.md) para desarrollo con SDK .NET 10.
 
 Para ejecutar las pruebas:
 
 ```powershell
 dotnet test CleanMinimalApi.sln
+python -m unittest discover -s services/ocr -v
 ```
 
 ## Documentación

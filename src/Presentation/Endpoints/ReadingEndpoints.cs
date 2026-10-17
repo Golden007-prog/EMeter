@@ -80,9 +80,9 @@ public static class ReadingEndpoints
             var result = await sender.Send(command);
             return TypedResults.Created($"/api/readings/{result.Id}", result);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -100,9 +100,9 @@ public static class ReadingEndpoints
         {
             return TypedResults.NotFound(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -116,9 +116,9 @@ public static class ReadingEndpoints
             var readings = await sender.Send(query);
             return TypedResults.Ok(readings.ToDtoList());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -132,9 +132,9 @@ public static class ReadingEndpoints
             var readings = await sender.Send(query);
             return TypedResults.Ok(readings.ToDtoList());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -148,9 +148,9 @@ public static class ReadingEndpoints
             var readings = await sender.Send(query);
             return TypedResults.Ok(readings.ToDtoList());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 }

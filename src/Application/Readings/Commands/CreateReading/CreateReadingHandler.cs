@@ -5,7 +5,7 @@ using CleanMinimalApi.Application.Readings.Entities;
 using MediatR;
 using Serilog;
 
-public sealed class CreateReadingHandler(IReadingsRepository readingsRepository, ILogger logger)
+public sealed class CreateReadingHandler(IReadingsRepository readingsRepository, ILogger logger, Catalog.ICatalogRepository catalog)
     : IRequestHandler<CreateReadingCommand, CreateReadingResponse>
 {
     private readonly IReadingsRepository readingsRepository = readingsRepository ?? throw new ArgumentNullException(nameof(readingsRepository));
@@ -15,7 +15,23 @@ public sealed class CreateReadingHandler(IReadingsRepository readingsRepository,
     {
         this.logger.Information("Creating reading for meter {MeterId} with value {Value}", request.MeterId, request.Value);
 
-        // Get the previous reading if PreviousReadingId is not provided
+        var meter = await catalog.FindAsync<Meters.Entities.Meter>(request.MeterId, cancellationToken)
+            ?? throw new NotFoundException("Meter not found");
+        if (meter.Unit != request.Unit || (request.PropertyId != null && meter.PropertyId != request.PropertyId))
+            throw new FluentValidation.ValidationException("Meter unit or property does not match");
+        if (request.BillingPeriodId is {} periodId)
+        {
+            var period = await catalog.FindAsync<BillingPeriods.Entities.BillingPeriod>(periodId, cancellationToken)
+                ?? throw new NotFoundException("Billing period not found");
+            if (period.IsImmutable) throw new InvalidOperationException("Closed billing periods are immutable");
+            if (request.MeasuredAt < period.Start || request.MeasuredAt > period.End)
+                throw new FluentValidation.ValidationException("Measurement date is outside the billing period");
+        }
+        var meterReadings = await this.readingsRepository.GetByMeterIdAsync(request.MeterId, cancellationToken);
+        if (meterReadings.Any(x => x.Source.Equals(request.Source, StringComparison.OrdinalIgnoreCase) && x.MeasuredAt >= request.MeasuredAt))
+            throw new FluentValidation.ValidationException("Readings for the same source must be submitted in chronological order");
+
+        // Find the previous reading for the same source.
         Reading? previousReading;
         if (request.PreviousReadingId.HasValue)
         {
@@ -28,18 +44,23 @@ public sealed class CreateReadingHandler(IReadingsRepository readingsRepository,
         else
         {
             // Get the latest reading for this meter
-            previousReading = await this.readingsRepository.GetLatestByMeterIdAsync(request.MeterId, cancellationToken);
+            previousReading = meterReadings.Where(x => x.Source.Equals(request.Source, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(x => x.MeasuredAt).FirstOrDefault();
         }
+
+        if (previousReading != null && (previousReading.MeterId != request.MeterId || previousReading.Unit != request.Unit || !previousReading.Source.Equals(request.Source, StringComparison.OrdinalIgnoreCase)
+            || previousReading.MeasuredAt >= request.MeasuredAt))
+            throw new FluentValidation.ValidationException("Previous reading must belong to the same meter and unit and have an earlier date");
 
         var reading = new Reading
         {
             MeterId = request.MeterId,
-            PropertyId = request.PropertyId,
+            PropertyId = meter.PropertyId,
             BillingPeriodId = request.BillingPeriodId,
             PreviousReadingId = previousReading?.Id,
             Value = request.Value,
             Unit = request.Unit,
-            MeasuredAt = request.MeasuredAt,
+            MeasuredAt = request.MeasuredAt.ToUniversalTime(),
             Source = request.Source,
             Status = "Pending"
         };
@@ -47,7 +68,7 @@ public sealed class CreateReadingHandler(IReadingsRepository readingsRepository,
         // Check for consumption anomaly
         if (previousReading != null)
         {
-            var historicalReadings = await this.readingsRepository.GetByMeterIdAsync(request.MeterId, cancellationToken);
+            var historicalReadings = meterReadings.Where(x => x.Source.Equals(request.Source, StringComparison.OrdinalIgnoreCase)).ToList();
             var historicalConsumptions = historicalReadings
                 .Where(item => item.PreviousReadingId.HasValue)
                 .Select(item => item.Value - (historicalReadings.FirstOrDefault(previous => previous.Id == item.PreviousReadingId)?.Value ?? item.Value))

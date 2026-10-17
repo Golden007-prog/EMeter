@@ -1,5 +1,6 @@
 using CleanMinimalApi.Presentation.Extensions;
 using Serilog;
+using CleanMinimalApi.Infrastructure;
 
 var builder = WebApplication
     .CreateBuilder(args)
@@ -12,7 +13,8 @@ var app = builder
 try
 {
     Log.Information("Starting host");
-    app.Run();
+    await app.Services.InitializeInfrastructureAsync();
+    await app.RunAsync();
     return 0;
 }
 catch (Exception ex)

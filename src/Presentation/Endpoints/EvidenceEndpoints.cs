@@ -23,7 +23,8 @@ public static class EvidenceEndpoints
             .WithDescription("Upload and manage evidence for meter readings");
 
         _ = root.MapPost("/upload", UploadEvidence)
-            .Produces<UploadEvidenceResponse>(StatusCodes.Status201Created)
+            .DisableAntiforgery()
+            .Produces<UploadEvidenceResponse>(StatusCodes.Status202Accepted)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status500InternalServerError)
             .WithSummary("Upload evidence file (photo or PDF)")
@@ -47,7 +48,7 @@ public static class EvidenceEndpoints
         return app;
     }
 
-    public static async Task<Results<Created<UploadEvidenceResponse>, ValidationProblem, ProblemHttpResult>> UploadEvidence(
+    public static async Task<Results<Accepted<UploadEvidenceResponse>, ValidationProblem, ProblemHttpResult>> UploadEvidence(
         IFormFile file,
         [FromServices] ISender sender)
     {
@@ -62,11 +63,11 @@ public static class EvidenceEndpoints
             var command = new UploadEvidenceCommand(file.FileName, file.ContentType, stream);
             var result = await sender.Send(command);
 
-            return TypedResults.Created($"/api/evidence/{result.Id}", result);
+            return TypedResults.Accepted($"/api/extractions/{result.Id}", result);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -84,9 +85,9 @@ public static class EvidenceEndpoints
         {
             return TypedResults.NotFound(ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 
@@ -100,9 +101,9 @@ public static class EvidenceEndpoints
             var evidences = await sender.Send(query);
             return TypedResults.Ok(evidences.ToDtoList());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return TypedResults.Problem(ex.StackTrace, ex.Message, StatusCodes.Status500InternalServerError);
+            throw;
         }
     }
 }

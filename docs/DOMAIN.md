@@ -17,7 +17,7 @@
 
 Los recursos son `Water`, `Electricity` y `Gas`. Los identificadores se generan como GUID en las entidades. Las relaciones se representan principalmente mediante IDs y listas; no deben asumirse restricciones referenciales de una base relacional.
 
-`BillingPeriod.IsImmutable` es verdadero cuando el estado es `Closed`, y `SetStatus` rechaza cambios desde ese estado. Sin embargo, `Status` tiene setter público y la creación de lecturas no verifica si el período está cerrado. No existe un flujo HTTP de cierre o bloqueo de períodos.
+`BillingPeriod.IsImmutable` es verdadero al cerrar el período. Las rutas de cambio de estado y creación de lectura respetan el cierre. No hay borrado ni edición general de catálogos. Las relaciones se validan al crear entidades y lecturas desde la API.
 
 ## Lectura, consumo y alertas
 
@@ -29,9 +29,9 @@ Los recursos son `Water`, `Electricity` y `Gas`. Los identificadores se generan 
 6. Con promedio mayor a cero, consumo estrictamente superior a `1.5 × promedio` genera `AbnormallyHighConsumption` con severidad `Warning`.
 7. Si hay alertas, el estado final es `Warning`; la medición se conserva.
 
-Una primera lectura no genera alerta de comparación. La creación no verifica que una lectura previa explícita pertenezca al mismo medidor, que las fechas sean crecientes o que las unidades coincidan. Insertar una lectura antigua sin predecesor explícito puede enlazarla a una lectura posterior, porque la búsqueda usa la última fecha almacenada.
+Una primera lectura no genera alerta de comparación. Las lecturas se enlazan a una anterior del mismo medidor, unidad y origen. Las fechas de un mismo origen deben avanzar cronológicamente; el ingreso de históricos intercalados requiere una futura operación que recalcule la cadena. El medidor debe existir; propiedad y unidad deben coincidir. Los períodos asociados deben existir, contener la fecha y no estar cerrados.
 
-No hay conversión de unidades ni cálculo de tarifas o importes. `ReadingDto` expone mediciones y alertas; no devuelve consumo como campo propio. Los tipos `MissingReading` y `ResidentCompanyMismatch` existen en el enum, pero la creación solo genera las dos alertas descritas arriba.
+No hay conversión de unidades, tarifas o cobros monetarios. El OCR conserva propuestas y exige confirmación humana antes de crear lecturas. Consulta [OCR](OCR.md).
 
 ## Reportes
 
@@ -41,13 +41,11 @@ Pendientes filtra lecturas existentes con estado exactamente `Pending`, por per�
 
 ### Resumen mensual
 
-El resumen se calcula sobre las lecturas del `billingPeriodId` recibido, sin inferir un mes calendario:
+El resumen usa el billingPeriodId explícito. Cuenta lecturas, pendientes y alertas. Los totales de Company y Resident se calculan mediante diferencias contra predecesores conocidos, sumando los incrementos de cada medidor y origen dentro del período. Una lectura sin predecesor no aporta consumo. No se interpolan consumos entre fechas ni se infiere un mes calendario.
 
-- Cuenta lecturas totales, pendientes y con alertas.
-- Suma **valores acumulados de lecturas**, no diferencias de consumo, por origen `Resident` y `Company` (sin distinguir mayúsculas).
-- Si existen ambos orígenes y sus sumas difieren, `mismatchCount` vale `1`; de lo contrario, `0`. No cuenta discrepancias por propiedad.
-- Cuando hay discrepancia y el total Company es distinto de cero: `mismatchPercentage = abs(residentTotal - companyTotal) / companyTotal × 100`.
-- Si no existe un origen, su total es nulo; la serialización HTTP omite ese campo. El porcentaje también se omite cuando no corresponde calcularlo.
+Cuenta discrepancias por medidor cuando ambos orígenes tienen consumo conocido. `totalsByUnit` conserva kWh y m3 separados: los totales escalares son nulos cuando existen varias unidades. El porcentaje agregado solo se calcula cuando ambos orígenes cubren los mismos medidores, hay una sola unidad y Company no es cero.
+
+`pending-readings` mantiene su contrato de lecturas existentes pendientes. `/api/reports/missing-readings/{billingPeriodId}` lista medidores conocidos sin lectura alguna en ese período, con filtro opcional propertyId y hasta 1000 medidores. No distingue todavía un faltante Company de un faltante Resident ni mantiene historial de activación de medidores.
 
 ### Conciliación de condominios
 

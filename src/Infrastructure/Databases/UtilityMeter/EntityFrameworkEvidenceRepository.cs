@@ -32,6 +32,7 @@ internal class EntityFrameworkEvidenceRepository(UtilityMeterDbContext context) 
     {
         ArgumentNullException.ThrowIfNull(evidence);
         _ = await this.context.Evidence.AddAsync(evidence, cancellationToken);
+        this.context.ExtractionJobs.Add(new Application.Extraction.ExtractionJob { Id = evidence.Id, EvidenceId = evidence.Id });
         _ = await this.context.SaveChangesAsync(cancellationToken);
     }
 
