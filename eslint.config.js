@@ -6,7 +6,14 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    '.e2e-dist',
+    '.migration-backup',
+    'e2e/artifacts',
+    'test-results',
+    'playwright-report',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -18,5 +25,9 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+  },
+  {
+    files: ['e2e/**/*.ts', 'playwright*.ts', 'vite.config.ts'],
+    languageOptions: { globals: globals.node },
   },
 ])

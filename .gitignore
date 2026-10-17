@@ -11,6 +11,13 @@ node_modules
 dist
 dist-ssr
 *.local
+.migration-backup/
+playwright-report/
+test-results/
+e2e/artifacts/
+.e2e-dist/
+.env
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
