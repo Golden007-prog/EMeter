@@ -1,6 +1,18 @@
 # Base funcional para React
 
-El alcance acordado es un prototipo local de un solo usuario. Los cambios de esta entrega corresponden al backend; el frontend React todavía no está implementado.
+El alcance acordado es un prototipo local de un solo usuario, sin autenticación. El frontend y su harness viven en el repositorio separado `D:\coding\UtilityMeterWeb`: React + TypeScript + Vite, React Router, TanStack Query, React Hook Form + Zod y Material UI. Este repositorio, `D:\coding\UtilityMeter`, contiene el backend. La web se organiza por funcionalidades, sin replicar las capas del backend.
+
+## Primera entrega implementada
+
+- Layout adaptable con barra lateral y rutas para resumen del período, lecturas, documentos/OCR, reportes y configuración. Solo Configuración → Propiedades conecta recorridos funcionales; las demás secciones indican su implementación pendiente.
+- Lista de propiedades con paginación de servidor, búsqueda y filtros de organización/condominio en URL. Estados de carga, error con reintento y vacío.
+- Creación de propiedades independientes o asociadas: nombre, dirección, recurso y pertenencias opcionales; selectores por nombre con paginación explícita. Invalidación y consulta de la lista tras crear.
+- Cliente HTTP configurable con `VITE_API_BASE_URL`, contratos JSON validados y manejo de ProblemDetails. Los formularios conservan valores ante errores, incluidos conflictos 409. La creación de propiedad no requiere versión, motivo ni requestId.
+- Etiquetas y mensajes en español, foco en errores, navegación por teclado y menú móvil. `billingPeriodId`, si está en la URL, se conserva entre secciones; la selección de período no se implementa aún.
+
+Instalación, ejecución, decisiones y recorrido de validación: [UtilityMeterWeb/README.md](../../UtilityMeterWeb/README.md). Desde `D:\coding\UtilityMeterWeb`, `npm run build` comprueba TypeScript y genera `dist/`; `npm run test:e2e` ejecuta Chromium contra una API real aislada en memoria. No requiere PostgreSQL, MinIO ni OCR.
+
+El [harness E2E de UtilityMeterWeb](../../UtilityMeterWeb/e2e/README.md) también permite verificar el backend ya iniciado: `npm run test:e2e:live` usa solo lectura; `npm run test:e2e:live:write` habilita una propiedad sintética persistente. Guarda evidencia por corrida dentro del repositorio web y separa el build de pruebas del build normal. Se revisaron los contratos y no se requieren cambios adicionales del backend para lista y creación de propiedades.
 
 ## Flujos de interfaz
 
@@ -33,4 +45,4 @@ python -m unittest discover -s services/ocr -v
 python scripts/smoke.py --base http://localhost:8080
 ```
 
-La implementación React deberá añadir la verificación de estos recorridos desde el navegador, incluida recarga, navegación y recuperación de errores. La precisión OCR con boletas reales requiere evaluación aparte.
+La primera entrega React verifica desde Chromium la creación independiente/asociada, paginación, filtros, recarga, navegación, validación y recuperación de errores. Los recorridos de lecturas, OCR, reportes y cierre todavía requieren implementación y pruebas de navegador. La precisión OCR con boletas reales requiere evaluación aparte.

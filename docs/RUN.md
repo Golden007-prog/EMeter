@@ -50,4 +50,12 @@ La API aplica FrontendWorkflows al arrancar. La migración agrega version, revie
 
 Los clientes existentes deben adaptar los GET de catálogos al sobre paginado con items y los POST a 201. Los errores son ProblemDetails; la confirmación OCR ya no pide id en el cuerpo. Los campos nulos se incluyen para mantener el contrato OpenAPI.
 
-CORS permite localhost:5173 y 127.0.0.1:5173 por defecto; se reemplaza con Cors:AllowedOrigins. El alcance continúa siendo local de un usuario, sin autenticación. La interfaz React se implementará sobre estos contratos.
+CORS permite localhost:5173 y 127.0.0.1:5173 por defecto; se reemplaza con Cors:AllowedOrigins. El alcance continúa siendo local de un usuario, sin autenticación.
+
+## Frontend React
+
+El frontend se mantiene en el repositorio separado `D:\coding\UtilityMeterWeb`. Desde esa carpeta, ejecutar `npm ci`, copiar `.env.example` a `.env` y ejecutar `npm run dev`. Abrir http://127.0.0.1:5173. El valor inicial de `VITE_API_BASE_URL` apunta a Compose (http://localhost:8080); con `dotnet run --project src/Presentation` desde este repositorio backend, cambiarlo a http://localhost:5032 y reiniciar Vite.
+
+La primera entrega implementa lista y creación de propiedades. Desde UtilityMeterWeb, `npm run build` comprueba TypeScript y genera el build; `npm run test:e2e` inicia una API aislada en memoria y Vite para verificar el recorrido con Chromium, usando `../UtilityMeter/src/Presentation`. Requiere `npx playwright install chromium` una vez y los puertos 18080 y 5173 libres. Más instrucciones, alcance y limitaciones en [UtilityMeterWeb/README.md](../../UtilityMeterWeb/README.md).
+
+Con la API de Compose iniciada en 8080, ejecutar `npm run test:e2e:live` desde `D:\coding\UtilityMeterWeb` para comprobar integración y navegador sin escribir datos. `npm run test:e2e:live:write` agrega una propiedad `[E2E]` identificada en los artefactos. Estos modos solo requieren libre el puerto 5173 y no reinician el backend. Reportes y opciones en [el harness de UtilityMeterWeb](../../UtilityMeterWeb/e2e/README.md).
