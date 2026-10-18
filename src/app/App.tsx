@@ -33,6 +33,10 @@ function PropertiesRedirect() {
   const { search } = useLocation()
   return <Navigate to={`/configuracion/propiedades${search}`} replace />
 }
+function PeriodRedirect() {
+  const { search } = useLocation()
+  return <Navigate to={`/periodo${search}`} replace />
+}
 export function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -41,7 +45,7 @@ export function App() {
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
-              <Route index element={<PropertiesRedirect />} />
+              <Route index element={<PeriodRedirect />} />
               <Route path="configuracion" element={<PropertiesRedirect />} />
               <Route
                 path="configuracion/propiedades"
