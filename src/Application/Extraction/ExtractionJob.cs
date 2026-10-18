@@ -14,7 +14,21 @@ public sealed class ExtractionJob
     public Guid? ConfirmedReadingId { get; set; }
 }
 
-public sealed record ExtractedBill(string Text, Dictionary<string, string> Fields, double? Confidence, string Engine);
+public sealed record ExtractedBill(string Text, Dictionary<string, string> Fields, double? Confidence, string Engine,
+    int SchemaVersion = 1, ExtractedDocument? Document = null,
+    Dictionary<string, List<ExtractedFieldProposal>>? Proposals = null,
+    Dictionary<string, string>? Metadata = null, List<ExtractedReading>? Readings = null,
+    List<ExtractedCharge>? Charges = null, List<ExtractedArtifact>? Artifacts = null,
+    List<ExtractionWarning>? Warnings = null);
+
+public sealed record ExtractedDocument(string Type, string? Provider, int PageCount, string? DocumentNumber);
+public sealed record ExtractedFieldProposal(string Value, string RawValue, string DataType, string Source,
+    int? Page, string? Unit, double? Confidence);
+public sealed record ExtractedReading(string? MeterNumber, string? Ownership, string? CurrentValue,
+    string? PreviousValue, string? Consumption, string? Unit, string? Constant, string? Period, int? Page);
+public sealed record ExtractedCharge(string Description, string Amount, string Currency, string? Category, int? Page);
+public sealed record ExtractedArtifact(string Type, string? Format, string? Value, string? Title, int Page, string Status);
+public sealed record ExtractionWarning(string Code, string Message, string? Field);
 
 public interface IMeterReadingExtractor
 {

@@ -85,6 +85,8 @@ La bandeja devuelve ID, evidenceId, nombre de archivo, estado, intentos, error, 
 
 El cuerpo de confirmación requiere `meterId`, `value`, `unit`, `measuredAt`; admite `propertyId`, `billingPeriodId` y `source` (Company por defecto; también Resident y OCR). El ID se toma exclusivamente de la ruta. Una confirmación repetida devuelve la misma lectura. JPEG, PNG y PDF requieren firma coincidente y admiten hasta 20 MiB. Más detalles en [OCR](OCR.md).
 
+`result` usa un contrato versionado. `fields` conserva el mapa plano compatible con los clientes existentes y solo incluye valores no contradictorios. `proposals` conserva todos los candidatos con valor original, tipo, origen, página, unidad y confianza opcional. `document`, `metadata`, `readings`, `charges`, `artifacts` y `warnings` describen la boleta sin convertir automáticamente consumo, cargos o gráficos en lecturas. La versión actual es `schemaVersion: 2`.
+
 ## Reportes
 
 - `/api/reports/pending-readings`: lecturas con reviewStatus Pending; filtros billingPeriodId y propertyId.

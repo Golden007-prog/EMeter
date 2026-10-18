@@ -1,50 +1,72 @@
-"""Conservative proposals for Chilean utility bills; never confirms readings."""
+"""Structured, conservative proposals for Chilean utility bills."""
+from dataclasses import dataclass
 import re
-import unicodedata
 
-PROVIDERS = ("Enel", "CGE", "Chilquinta", "Saesa", "Frontel", "Edelaysen",
-             "Aguas Andinas", "Esval", "Essbio", "Nuevosur", "Smapa", "Metrogas",
-             "GasValpo", "Gasco", "Lipigas", "Abastible")
+from bill_models import BillExtraction, DocumentContext, chilean_number, normalize_text
+from bill_providers import find_provider
 
 
-def normalize(value):
-    return "".join(c for c in unicodedata.normalize("NFD", value.lower())
-                   if unicodedata.category(c) != "Mn")
+@dataclass(frozen=True)
+class FieldRule:
+    key: str
+    pattern: str
+    data_type: str = "string"
+    numeric: bool = False
 
 
-def chilean_number(value):
-    # Chilean thousands '.', decimal ','. Ambiguous dots are treated as thousands.
-    return value.replace(" ", "").replace(".", "").replace(",", ".")
+COMMON_RULES = (
+    FieldRule("customerNumber", r"(?:numero\s+de\s+cliente|n[°ºo.]?\s*(?:de\s+)?cliente|cuenta\s+contrato)\s*[:#-]?\s*([\d.-]+)"),
+    FieldRule("documentNumber", r"(?:boleta\s*(?:electronica)?\s*(?:n[°ºo.]?)?|folio)\s*[:#-]?\s*([\d.-]+)"),
+    FieldRule("previousReading", r"lectura\s+anterior\s*[:=]?\s*([\d][\d.,]*)", "decimal", True),
+    FieldRule("currentReading", r"lectura\s+actual\s*[:=]?\s*([\d][\d.,]*)", "decimal", True),
+    FieldRule("consumption", r"consumo(?:\s+total)?(?:\s+(?:facturado|del\s+mes))?(?:\s*\((?:kwh|m3|m³)\))?\s*[:=]?\s*([\d][\d.,]*)", "decimal", True),
+    FieldRule("totalAmount", r"total\s+a\s+pagar\s*[:=]?\s*\$?\s*([\d][\d.,]*)", "money", True),
+    FieldRule("previousDebt", r"(?:saldo|deuda)\s+anterior\s*[:=]?\s*\$?\s*([\d][\d.,]*)", "money", True),
+    FieldRule("dueDate", r"(?:fecha\s+de\s+vencimiento|vencimiento|vencer?)\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4})", "date"),
+    FieldRule("issueDate", r"(?:fecha\s+de\s+emision|emision)\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4})", "date"),
+    FieldRule("period", r"periodo(?:\s+de\s+(?:consumo|facturacion|lectura))?\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4}\s*(?:al|a|-)\s*\d{1,2}[-/]\d{1,2}[-/]\d{4})", "dateRange"),
+)
+
+
+class CommonBillParser:
+    def extract(self, context, result):
+        unit = self._unit(context.normalized_text)
+        for page_index, page in enumerate(context.dated_pages):
+            for rule in COMMON_RULES:
+                for match in re.finditer(rule.pattern, page):
+                    raw_value = match[1]
+                    value = chilean_number(raw_value) if rule.numeric else raw_value
+                    proposal_unit = unit if rule.key in ("previousReading", "currentReading", "consumption") else None
+                    result.propose(rule.key, value, raw_value, rule.data_type, "common",
+                                   page_index + 1, proposal_unit)
+        if unit:
+            result.propose("unit", unit, unit, source="common")
+        if result.proposals.get("totalAmount"):
+            result.propose("currency", "CLP", "CLP", source="common")
+
+    @staticmethod
+    def _unit(normalized):
+        match = re.search(r"\b(kwh|m3|m³)\b", normalized)
+        return "kWh" if match and match[1] == "kwh" else "m3" if match else None
+
+
+def parse_bill(pages):
+    """Return the versioned structured result for one or more document pages."""
+    context = DocumentContext.from_pages(pages)
+    provider, provider_parser = find_provider(context)
+    result = BillExtraction(len(context.pages), provider)
+    CommonBillParser().extract(context, result)
+    if provider_parser:
+        provider_parser.extract(context, result)
+    if provider:
+        result.propose("provider", provider, provider, source="classifier")
+    return result.as_dict()
 
 
 def extract_fields(text):
-    normalized = normalize(text)
-    fields = {}
-    for provider in PROVIDERS:
-        if normalize(provider) in normalized:
-            fields["provider"] = provider
-            break
-    patterns = {
-        "customerNumber": r"(?:numero\s+de\s+cliente|n[°ºo.]?\s*(?:de\s+)?cliente|cuenta\s+contrato)\s*[:#-]?\s*([\d.-]+)",
-        "documentNumber": r"(?:boleta\s*(?:electronica)?\s*(?:n[°ºo.]?)?|folio)\s*[:#-]?\s*([\d.-]+)",
-        "previousReading": r"lectura\s+anterior\s*[:=]?\s*([\d][\d.,]*)",
-        "currentReading": r"lectura\s+actual\s*[:=]?\s*([\d][\d.,]*)",
-        "consumption": r"consumo(?:\s+(?:total|facturado|del\s+mes))?(?:\s*\((?:kwh|m3|m³)\))?\s*[:=]?\s*([\d][\d.,]*)",
-        "totalAmount": r"total\s+a\s+pagar\s*[:=]?\s*\$?\s*([\d][\d.,]*)",
-        "previousDebt": r"(?:saldo|deuda)\s+anterior\s*[:=]?\s*\$?\s*([\d][\d.,]*)",
-        "dueDate": r"(?:fecha\s+de\s+vencimiento|vencimiento|vencer?)\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4})",
-        "issueDate": r"(?:fecha\s+de\s+emision|emision)\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4})",
-        "period": r"periodo(?:\s+de\s+(?:consumo|facturacion))?\s*[:=]?\s*(\d{1,2}[-/]\d{1,2}[-/]\d{4}\s*(?:al|a|-)\s*\d{1,2}[-/]\d{1,2}[-/]\d{4})",
-    }
-    numeric = {"previousReading", "currentReading", "consumption", "totalAmount", "previousDebt"}
-    for key, pattern in patterns.items():
-        matches = re.findall(pattern, normalized)
-        # Multiple differing matches need human interpretation, so omit the proposal.
-        if matches and len(set(matches)) == 1:
-            fields[key] = chilean_number(matches[0]) if key in numeric else matches[0]
-    unit = re.search(r"\b(kwh|m3|m³)\b", normalized)
-    if unit:
-        fields["unit"] = "kWh" if unit[1] == "kwh" else "m3"
-    if "totalAmount" in fields:
-        fields["currency"] = "CLP"
-    return fields
+    """Backward-compatible facade used by existing callers and tests."""
+    return parse_bill((text,))["fields"]
+
+
+# Kept as public helpers for compatibility with earlier parser imports.
+normalize = normalize_text
