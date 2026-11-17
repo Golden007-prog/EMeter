@@ -1,0 +1,28 @@
+services:
+  api:
+    image: utilitymeter-e2e-api
+    ports: !override ['127.0.0.1:18081:8080']
+    environment: &test-env
+      Cors__AllowedOrigins__2: http://127.0.0.1:15173
+      ConnectionStrings__UtilityMeter: Host=postgres;Database=utilitymeter;Username=utilitymeter;Password=e2e-disposable-password
+      Storage__AccessKey: e2e-user
+      Storage__SecretKey: e2e-disposable-secret
+  worker:
+    image: utilitymeter-e2e-worker
+    environment: *test-env
+  postgres:
+    ports: !override []
+    environment:
+      POSTGRES_PASSWORD: e2e-disposable-password
+  minio:
+    image: utilitymeter-e2e-minio
+    ports: !override []
+    environment:
+      MINIO_ROOT_USER: e2e-user
+      MINIO_ROOT_PASSWORD: e2e-disposable-secret
+  ocr:
+    image: utilitymeter-e2e-ocr
+    environment:
+      OCR_ENGINE: tesseract
+  seq:
+    ports: !override []
