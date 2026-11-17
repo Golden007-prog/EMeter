@@ -1,0 +1,112 @@
+namespace CleanMinimalApi.Presentation.Extensions;
+
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Application;
+using CleanMinimalApi.Presentation.Serialization;
+using FluentValidation;
+using Infrastructure;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi;
+using Serilog;
+
+[ExcludeFromCodeCoverage]
+public static class WebApplicationBuilderExtensions
+{
+    public static WebApplicationBuilder ConfigureApplicationBuilder(this WebApplicationBuilder builder)
+    {
+        #region Logging
+
+        _ = builder.Services.AddHttpLogging(logging =>
+            logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders | HttpLoggingFields.ResponsePropertiesAndHeaders);
+
+        _ = builder.Host.UseSerilog((hostContext, loggerConfiguration) =>
+        {
+            var assembly = Assembly.GetEntryAssembly();
+
+            _ = loggerConfiguration.ReadFrom.Configuration(hostContext.Configuration)
+                .Enrich.WithProperty(
+                    "Assembly Version",
+                    assembly?.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version)
+                .Enrich.WithProperty(
+                    "Assembly Informational Version",
+                    assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+        });
+
+        #endregion Logging
+
+        #region Serialisation
+
+        _ = builder.Services.Configure<JsonOptions>(opt =>
+        {
+            opt.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+            opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+            opt.SerializerOptions.PropertyNameCaseInsensitive = true;
+            opt.SerializerOptions.RespectRequiredConstructorParameters = true;
+            opt.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            opt.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+            opt.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+        });
+
+        #endregion Serialisation
+
+        #region Swagger
+
+        var ti = CultureInfo.CurrentCulture.TextInfo;
+
+        _ = builder.Services.AddEndpointsApiExplorer();
+
+        _ = builder.Services.AddOpenApi(options =>
+            options.AddDocumentTransformer((document, context, cancellationToken) =>
+            {
+                document.Info = new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = $"CleanMinimalApi API - {ti.ToTitleCase(builder.Environment.EnvironmentName)}",
+                    Description = "An example to share an implementation of Minimal API in .NET 10.",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "CleanMinimalApi API",
+                        Url = new Uri("https://github.com/stphnwlsh/cleanminimalapi")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "CleanMinimalApi API - License - MIT",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
+                    },
+                };
+                return Task.CompletedTask;
+            }));
+
+        #endregion Swagger
+
+        #region Validation
+
+        builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+            options.MultipartBodyLengthLimit = 21 * 1024 * 1024);
+        builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 22 * 1024 * 1024);
+
+        _ = builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), ServiceLifetime.Singleton);
+
+        #endregion Validation
+
+        #region Project Dependencies
+
+        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173", "http://127.0.0.1:5173"];
+        builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+            policy.WithOrigins(origins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "OPTIONS").WithExposedHeaders("Location")));
+
+        _ = builder.Services.AddInfrastructure(builder.Configuration);
+        _ = builder.Services.AddApplication();
+
+        #endregion Project Dependencies
+
+        return builder;
+    }
+}
