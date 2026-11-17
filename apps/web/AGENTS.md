@@ -1,12 +1,33 @@
-# UtilityMeterWeb
+# UtilityMeter · Web
 
-Este es el repositorio del frontend de UtilityMeter. El frontend, el harness E2E y sus artefactos pertenecen a este proyecto.
+Cliente React + TypeScript + Vite del monorepo **EMeter**. Vive en `apps/web`; el backend
+está en `apps/api`.
 
-- Trabajar desde `D:\coding\UtilityMeterWeb`.
-- El backend es un repositorio separado: `D:\coding\UtilityMeter`.
-- Mantener React, TypeScript, Vite y la organización por funcionalidades existente.
-- Conservar las reglas del backend como autoridad; consultar sus contratos y documentación antes de integrar endpoints.
-- El harness está en `e2e/` y sus artefactos en `e2e/artifacts/`. El modo aislado inicia `../UtilityMeter/src/Presentation`; live usa la API existente.
-- No mover código web al repositorio backend ni crear allí una carpeta `frontend/`.
+## Límites
 
-Ejecución y pruebas: `README.md` y `e2e/README.md`.
+- Trabaja desde `apps/web`. No muevas código web a `apps/api` ni crees `apps/api/frontend`.
+- El backend es la autoridad de las reglas: ante duda, lee `apps/api/docs/API.md` y
+  `apps/api/docs/DOMAIN.md` antes de integrar un endpoint.
+- El harness Playwright está en `e2e/` y sus artefactos en `e2e/artifacts/` (ignorados por
+  git). El modo aislado inicia `../api/src/Presentation`; los modos live y full-stack usan
+  la API existente o un Compose efímero.
+
+## Verificación
+
+```powershell
+cd apps/web
+npm ci
+npm run lint
+npm run build
+npm run test:unit
+npm run check:e2e
+npm run test:e2e        # requiere Chromium: npx playwright install chromium
+```
+
+## Reglas de interfaz
+
+- Nunca muestres un `null` como cero: un consumo no calculable se anuncia como tal.
+- Separa lectura acumulada, consumo calculado y montos de boleta; no los sumes entre sí.
+- Conserva `expectedVersion` y `requestId` al reintentar; no reintentes mutaciones solas.
+- Fechas en `America/Santiago` con su offset real; no asumas un offset fijo.
+- Mantén `reviewStatus` separado de `status`: una lectura confirmada puede tener advertencias.

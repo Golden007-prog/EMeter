@@ -1,0 +1,48 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# Node / frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+playwright-report/
+test-results/
+e2e/artifacts/
+.e2e-dist/
+*.tsbuildinfo
+
+# .NET
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+*.userosscache
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Configuración local y secretos
+.env
+.env.local
+*.local.json
+appsettings.Local.json
+
+# Datos locales, evidencias y volúmenes
+data/
+*.db
+*.sqlite
+*.sqlite3

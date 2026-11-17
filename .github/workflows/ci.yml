@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API · build y pruebas unitarias
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('apps/api/**/*.csproj', 'apps/api/Directory.Build.props', 'apps/api/global.json') }}
+          restore-keys: nuget-
+
+      - name: Restore
+        run: dotnet restore CleanMinimalApi.sln
+
+      - name: Build
+        run: dotnet build CleanMinimalApi.sln --no-restore
+
+      - name: Pruebas unitarias de Application
+        run: dotnet test tests/Application.Tests.Unit/Application.Tests.Unit.csproj --no-build --nologo
+
+      - name: Pruebas unitarias de Presentation
+        run: dotnet test tests/Presentation.Tests.Unit/Presentation.Tests.Unit.csproj --no-build --nologo
+
+  ocr:
+    name: OCR · pruebas del parser
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api/services/ocr
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Pruebas del parser de boletas
+        run: python -m unittest discover -s . -v
+
+  web:
+    name: Web · lint, build y pruebas unitarias
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Pruebas unitarias
+        run: npm run test:unit
+
+      - name: Tipos del harness E2E
+        run: npm run check:e2e
+
+  api-integration:
+    name: API · pruebas de integración (Testcontainers)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Pruebas de integración
+        run: |
+          dotnet test tests/Infrastructure.Tests.Integration/Infrastructure.Tests.Integration.csproj --nologo
+          dotnet test tests/Presentation.Tests.Integration/Presentation.Tests.Integration.csproj --nologo

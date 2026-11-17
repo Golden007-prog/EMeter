@@ -2,9 +2,9 @@
 
 ## Scope and repository boundaries
 
-- These instructions apply to this repository and its subdirectories. Follow any additional `AGENTS.md` instructions in the directory being changed.
-- Work from `D:\coding\UtilityMeter` for backend changes: the .NET API, Worker, infrastructure, OCR service, backend tests, and validation scripts.
-- The frontend is a separate repository at `D:\coding\UtilityMeterWeb`. Its application code, browser E2E harness, and browser artifacts belong there. Do not create a `frontend/` directory in this repository.
+- These instructions apply to `apps/api` and its subdirectories. The monorepo root `AGENTS.md` also applies. Follow any additional `AGENTS.md` instructions in the directory being changed.
+- Work from `apps/api` (this directory, at the monorepo root `apps/api`) for backend changes: the .NET API, Worker, infrastructure, OCR service, backend tests, and validation scripts.
+- The frontend lives in the sibling project `apps/web` of the same monorepo. Its application code, browser E2E harness, and browser artifacts belong there. Do not create a `frontend/` directory in this project.
 - Keep changes focused on the requested task and preserve unrelated work already present in the working tree.
 
 ## Project context and documentation

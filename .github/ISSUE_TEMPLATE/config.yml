@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Wiki del proyecto
+    url: https://github.com/cbinput/EMeter/wiki
+    about: Arquitectura, dominio, roadmap y guías de operación.
+  - name: Roadmap y tablero
+    url: https://github.com/cbinput/EMeter/blob/main/docs/ROADMAP.md
+    about: Qué sigue, en qué orden y por qué.
+  - name: Cómo contribuir
+    url: https://github.com/cbinput/EMeter/blob/main/CONTRIBUTING.md
+    about: Ramas, commits, pruebas y revisión.

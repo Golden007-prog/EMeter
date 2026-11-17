@@ -53,7 +53,7 @@ export function e2eConfig(mode: 'isolated' | 'live' | 'full-stack') {
         : [
             {
               command:
-                'dotnet run --project ../UtilityMeter/src/Presentation --no-launch-profile -- --urls http://127.0.0.1:18080 --environment local --ConnectionStrings:UtilityMeter= --Storage:Endpoint= --Cors:AllowedOrigins:2=' +
+                'dotnet run --project ../api/src/Presentation --no-launch-profile -- --urls http://127.0.0.1:18080 --environment local --ConnectionStrings:UtilityMeter= --Storage:Endpoint= --Cors:AllowedOrigins:2=' +
                 webUrl,
               url: `${apiUrl}/health`,
               reuseExistingServer: false,

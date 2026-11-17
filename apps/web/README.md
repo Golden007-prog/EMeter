@@ -6,10 +6,10 @@ El [plan completo](docs/PLAN_IMPLEMENTACION_COMPLETA_API.md) define el alcance d
 
 ## Ejecutar
 
-Requiere Node.js 22.12 o superior. Frontend y harness pertenecen a `D:\coding\UtilityMeterWeb`; el backend permanece en `D:\coding\UtilityMeter`.
+Requiere Node.js 22.12 o superior. Frontend y harness pertenecen a `D:\coding\EMeter\monorepo\apps\web`; el backend permanece en `D:\coding\EMeter\monorepo\apps\api`.
 
 ```powershell
-cd D:\coding\UtilityMeterWeb
+cd D:\coding\EMeter\monorepo\apps\web
 npm ci
 Copy-Item .env.example .env  # Solo si todavía no existe .env.
 npm run dev

@@ -1,0 +1,65 @@
+name: Bug
+description: Algo no funciona como se espera (API, OCR, web o datos).
+title: 'fix: '
+labels: ['bug', 'status:needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de continuar, revisa la [wiki](https://github.com/cbinput/EMeter/wiki) y busca un issue similar.
+        No adjuntes boletas reales, datos personales ni credenciales.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - API (.NET)
+        - Web (React)
+        - OCR / parser de boletas
+        - Persistencia (PostgreSQL / MinIO)
+        - Infraestructura / CI
+        - Documentación
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado
+      description: Qué debería ocurrir según el dominio o el contrato documentado.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento actual
+      description: Qué ocurre realmente. Incluye el mensaje de error o el ProblemDetails completo.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Ejecutar `docker compose up -d --build`
+        2. POST /api/readings con ...
+        3. Observar ...
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - 'S1: pérdida o corrupción de datos'
+        - 'S2: cifra incorrecta mostrada al usuario'
+        - 'S3: bloquea un flujo completo'
+        - 'S4: molestia o cosmético'
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: Versión, commit, sistema operativo, capturas sin datos personales.
+    validations:
+      required: false

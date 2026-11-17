@@ -1,12 +1,12 @@
 # Harness E2E de UtilityMeter
 
-Ejecutar desde `D:\coding\UtilityMeterWeb`. Requiere `npm ci` y Chromium (`npx playwright install chromium`). Frontend, harness y artefactos pertenecen a este repositorio; el backend permanece en `D:\coding\UtilityMeter`.
+Ejecutar desde `D:\coding\EMeter\monorepo\apps\web`. Requiere `npm ci` y Chromium (`npx playwright install chromium`). Frontend, harness y artefactos pertenecen a este repositorio; el backend permanece en `D:\coding\EMeter\monorepo\apps\api`.
 
 ## Modos y requisitos
 
 | Modo           | Backend                                            | Requisitos                                                     | Escritura                                                |
 | -------------- | -------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------- |
-| Aislado        | API efímera en memoria, puerto 18080               | .NET 10 y `../UtilityMeter/src/Presentation`                   | Datos temporales; sin OCR durable                        |
+| Aislado        | API efímera en memoria, puerto 18080               | .NET 10 y `../api/src/Presentation`                   | Datos temporales; sin OCR durable                        |
 | Full-stack     | API 18081; PostgreSQL, MinIO, Worker y OCR propios | Docker con Compose que admita `!override`, repositorio backend | Proyecto `utilitymeter-e2e-<id>` y volúmenes desechables |
 | Live           | API local existente, por defecto 8080              | API iniciada, salud y CORS válidos                             | Solo lectura                                             |
 | Live `--write` | Misma API existente                                | Lo anterior                                                    | Una propiedad independiente `[E2E]`, persistente         |
@@ -48,7 +48,7 @@ Live solo admite URLs locales HTTP/HTTPS. `E2E_API_URL` también configura live.
 - `live.spec.ts`: salud, OpenAPI, consultas de catálogos, errores reales 400/404, CORS y navegación. Solo con `--write` agrega una propiedad y registra inmediatamente su ID.
 - `tests/domain.test.mjs`: precisión decimal de extremo a extremo en JSON, validaciones de rango y horas de verano/invierno/ambiguas/inexistentes de Santiago (`npm run test:unit`).
 
-Las suites aislada y full-stack utilizan API real. Algunas respuestas de error se interceptan explícitamente para probar recuperación de UI; no certifican fallos de infraestructura. Full-stack deriva de `../UtilityMeter/docker-compose.yml` mediante `e2e/compose.override.yml`, usa credenciales desechables y OCR Tesseract sin descarga de modelos. La extracción de PDF y el reconocimiento de imágenes son reales; la calidad sobre documentos arbitrarios depende del motor y del original.
+Las suites aislada y full-stack utilizan API real. Algunas respuestas de error se interceptan explícitamente para probar recuperación de UI; no certifican fallos de infraestructura. Full-stack deriva de `../api/docker-compose.yml` mediante `e2e/compose.override.yml`, usa credenciales desechables y OCR Tesseract sin descarga de modelos. La extracción de PDF y el reconocimiento de imágenes son reales; la calidad sobre documentos arbitrarios depende del motor y del original.
 
 La prueba de persistencia reinicia API, Worker, PostgreSQL, MinIO y OCR **solo de su proyecto de pruebas**. La prueba de Failed detiene y recupera su OCR. El harness elimina contenedores y volúmenes de ese proyecto al terminar, incluso si una prueba falla. No modifica el stack de trabajo en 8080 ni su almacenamiento. Si el proceso se termina externamente de forma forzada, revisar el nombre del proyecto en los artefactos antes de limpiar manualmente; no ejecutar una limpieza global de Docker.
 

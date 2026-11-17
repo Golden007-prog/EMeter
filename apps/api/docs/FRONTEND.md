@@ -1,6 +1,6 @@
 # Base funcional para React
 
-El alcance acordado es un prototipo local de un solo usuario, sin autenticación. El frontend y su harness viven en el repositorio separado `D:\coding\UtilityMeterWeb`: React + TypeScript + Vite, React Router, TanStack Query, React Hook Form + Zod y Material UI. Este repositorio, `D:\coding\UtilityMeter`, contiene el backend. La web se organiza por funcionalidades, sin replicar las capas del backend.
+El alcance acordado es un prototipo local de un solo usuario, sin autenticación. El frontend y su harness viven en el repositorio separado `D:\coding\EMeter\monorepo\apps\web`: React + TypeScript + Vite, React Router, TanStack Query, React Hook Form + Zod y Material UI. Este repositorio, `D:\coding\EMeter\monorepo\apps\api`, contiene el backend. La web se organiza por funcionalidades, sin replicar las capas del backend.
 
 ## Primera entrega implementada
 
@@ -10,9 +10,9 @@ El alcance acordado es un prototipo local de un solo usuario, sin autenticación
 - Cliente HTTP configurable con `VITE_API_BASE_URL`, contratos JSON validados y manejo de ProblemDetails. Los formularios conservan valores ante errores, incluidos conflictos 409. La creación de propiedad no requiere versión, motivo ni requestId.
 - Etiquetas y mensajes en español, foco en errores, navegación por teclado y menú móvil. `billingPeriodId`, si está en la URL, se conserva entre secciones; la selección de período no se implementa aún.
 
-Instalación, ejecución, decisiones y recorrido de validación: [UtilityMeterWeb/README.md](../../UtilityMeterWeb/README.md). Desde `D:\coding\UtilityMeterWeb`, `npm run build` comprueba TypeScript y genera `dist/`; `npm run test:e2e` ejecuta Chromium contra una API real aislada en memoria. No requiere PostgreSQL, MinIO ni OCR.
+Instalación, ejecución, decisiones y recorrido de validación: [UtilityMeterWeb/README.md](../../web/README.md). Desde `D:\coding\EMeter\monorepo\apps\web`, `npm run build` comprueba TypeScript y genera `dist/`; `npm run test:e2e` ejecuta Chromium contra una API real aislada en memoria. No requiere PostgreSQL, MinIO ni OCR.
 
-El [harness E2E de UtilityMeterWeb](../../UtilityMeterWeb/e2e/README.md) también permite verificar el backend ya iniciado: `npm run test:e2e:live` usa solo lectura; `npm run test:e2e:live:write` habilita una propiedad sintética persistente. Guarda evidencia por corrida dentro del repositorio web y separa el build de pruebas del build normal. Se revisaron los contratos y no se requieren cambios adicionales del backend para lista y creación de propiedades.
+El [harness E2E de UtilityMeterWeb](../../web/e2e/README.md) también permite verificar el backend ya iniciado: `npm run test:e2e:live` usa solo lectura; `npm run test:e2e:live:write` habilita una propiedad sintética persistente. Guarda evidencia por corrida dentro del repositorio web y separa el build de pruebas del build normal. Se revisaron los contratos y no se requieren cambios adicionales del backend para lista y creación de propiedades.
 
 ## Flujos de interfaz
 

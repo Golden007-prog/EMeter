@@ -21,7 +21,7 @@ async function compose(...args: string[]) {
       '-p',
       project,
       '-f',
-      path.resolve('../UtilityMeter/docker-compose.yml'),
+      path.resolve('../api/docker-compose.yml'),
       '-f',
       path.resolve('e2e/compose.override.yml'),
       ...args,

@@ -1,0 +1,44 @@
+name: Tarea técnica
+description: Trabajo de ingeniería sin cambio de comportamiento visible (deuda, CI, migraciones, docs).
+title: 'chore: '
+labels: ['type:task', 'status:needs-triage']
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - API (.NET)
+        - Web (React)
+        - OCR / parser de boletas
+        - Persistencia (PostgreSQL / MinIO)
+        - Infraestructura / CI
+        - Documentación
+        - Seguridad
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto y motivación
+      description: Qué problema resuelve y por qué ahora.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Definición de terminado
+      placeholder: |
+        - [ ] Cambio implementado
+        - [ ] Pruebas agregadas o actualizadas
+        - [ ] `docs/` y wiki actualizados si cambia el comportamiento
+        - [ ] CI en verde
+    validations:
+      required: true
+  - type: input
+    id: effort
+    attributes:
+      label: Estimación
+      description: 'Esfuerzo aproximado en días-persona o talla (XS/S/M/L).'
+    validations:
+      required: false

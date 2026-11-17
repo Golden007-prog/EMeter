@@ -1,0 +1,43 @@
+name: Historia de usuario
+description: Una capacidad nueva contada desde quien la usa, con criterios de aceptación.
+title: 'feat: '
+labels: ['type:story', 'status:needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        El objetivo del producto es que una persona pueda comprobar si su boleta de servicios
+        básicos contiene cobros irregulares. Toda historia debería acercar a ese objetivo.
+  - type: textarea
+    id: story
+    attributes:
+      label: Historia
+      value: |
+        **Como** (rol: residente, administrador de condominio, auditor)
+        **quiero** (capacidad)
+        **para** (beneficio verificable)
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      description: En formato Gherkin o lista verificable. Deben ser observables desde la UI o la API.
+      placeholder: |
+        - [ ] Dado un período cerrado, cuando el usuario intenta capturar una lectura, entonces recibe 409.
+        - [ ] El total calculado y el total impreso difieren en más de $1 y la UI muestra la diferencia.
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Valor para el objetivo
+      description: ¿Cómo ayuda esto a detectar, probar o reclamar un cobro irregular?
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Fuera de alcance
+    validations:
+      required: false

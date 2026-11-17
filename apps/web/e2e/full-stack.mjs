@@ -15,7 +15,7 @@ const composeArgs = [
   '-p',
   project,
   '-f',
-  path.resolve(root, '../UtilityMeter/docker-compose.yml'),
+  path.resolve(root, '../api/docker-compose.yml'),
   '-f',
   path.join(root, 'e2e/compose.override.yml'),
 ]
