@@ -103,10 +103,14 @@ Cómo ejecutarlo con agentes: [docs/DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md).
 
 1. El plan vive en [`docs/backlog/`](docs/backlog/). Cada archivo declara título, etiquetas,
    hito, esfuerzo y criterios de aceptación.
-2. `./scripts/github/sync.ps1` crea o actualiza etiquetas, hitos, issues y campos del tablero.
-   Es idempotente: se puede correr las veces que haga falta.
-3. Un issue por rama y por sesión de trabajo. Ver [CONTRIBUTING.md](CONTRIBUTING.md).
-4. Nada se declara terminado sin una verificación ejecutada.
+2. `./scripts/github/sync.ps1` crea o actualiza etiquetas, hitos, issues y el tablero. Es
+   idempotente: se puede correr las veces que haga falta.
+3. `./scripts/github/sync-project-fields.ps1` completa los campos `Fase` y `Esfuerzo (días)` de
+   cada elemento del tablero. Espacia las mutaciones para no chocar con el límite de la API.
+4. `./scripts/publish-wiki.ps1` publica [`docs/wiki/`](docs/wiki/) en la wiki de GitHub; requiere
+   que la wiki tenga su primera página creada desde la interfaz.
+5. Un issue por rama y por sesión de trabajo. Ver [CONTRIBUTING.md](CONTRIBUTING.md).
+6. Nada se declara terminado sin una verificación ejecutada.
 
 ## Licencia
 
