@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
+import { ContextLink as Link } from '../../shared/ui/ContextLink'
 import { useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -30,6 +31,7 @@ import LocalFireDepartmentOutlined from '@mui/icons-material/LocalFireDepartment
 import { PageHeading } from '../../shared/ui/PageHeading'
 import { ProblemAlert } from '../../shared/ui/ProblemAlert'
 import { CatalogSelect } from './CatalogSelect'
+import { CatalogNavigation } from './CatalogNavigation'
 import { CreatePropertyDialog } from './CreatePropertyDialog'
 import { getOption, listProperties, resourceLabels } from './api'
 import type { Property, ResourceType } from './api'
@@ -91,6 +93,7 @@ function Ownership({ property }: { property: Property }) {
 }
 
 export function PropertiesPage() {
+  const location = useLocation()
   const [params, setParams] = useSearchParams()
   const [creating, setCreating] = useState(false)
   const [created, setCreated] = useState<Property | null>(null)
@@ -136,15 +139,7 @@ export function PropertiesPage() {
           </Button>
         }
       />
-      <Box className="catalog-tabs" aria-label="Catálogos">
-        <Typography className="catalog-tab-active">Propiedades</Typography>
-        <Typography color="text.secondary">
-          Organizaciones <span className="soon-label">Próximamente</span>
-        </Typography>
-        <Typography color="text.secondary">
-          Condominios <span className="soon-label">Próximamente</span>
-        </Typography>
-      </Box>
+      <CatalogNavigation />
       {created && (
         <Alert
           severity="success"
@@ -328,7 +323,15 @@ export function PropertiesPage() {
                             <HomeWorkOutlined fontSize="small" />
                           </Box>
                           <Box>
-                            <Typography variant="subtitle2">
+                            <Typography
+                              component={Link}
+                              to={`/configuracion/propiedades/${property.id}${location.search}`}
+                              variant="subtitle2"
+                              sx={{
+                                color: 'primary.main',
+                                textDecoration: 'none',
+                              }}
+                            >
                               {property.name}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">

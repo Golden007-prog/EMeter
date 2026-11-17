@@ -4,6 +4,7 @@ import {
   NavLink,
   Outlet,
   useLocation,
+  useSearchParams,
 } from 'react-router-dom'
 import { Box, Chip, Drawer, IconButton, Typography } from '@mui/material'
 import DashboardOutlined from '@mui/icons-material/DashboardOutlined'
@@ -14,6 +15,8 @@ import SettingsOutlined from '@mui/icons-material/SettingsOutlined'
 import WaterDropOutlined from '@mui/icons-material/WaterDropOutlined'
 import MenuRounded from '@mui/icons-material/MenuRounded'
 import CloseRounded from '@mui/icons-material/CloseRounded'
+
+import { BillingPeriodSelect } from '../features/readings/ReadingSelectors'
 
 const links = [
   { to: '/periodo', label: 'Resumen del período', icon: DashboardOutlined },
@@ -29,12 +32,13 @@ const links = [
 export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const [, setSearchParams] = useSearchParams()
   const mainRef = useRef<HTMLElement>(null)
   const previousPath = useRef(location.pathname)
   useEffect(() => {
     if (previousPath.current !== location.pathname) mainRef.current?.focus()
     previousPath.current = location.pathname
-    document.title = `UtilityMeter · ${links.find((link) => location.pathname.startsWith(link.to))?.label ?? 'Página no encontrada'}`
+    document.title = `UtilityMeter · ${links.find((link) => location.pathname.startsWith(link.to === '/configuracion/propiedades' ? '/configuracion' : link.to))?.label ?? 'Página no encontrada'}`
   }, [location.pathname])
   const params = new URLSearchParams(location.search)
   const period = params.get('billingPeriodId')
@@ -127,6 +131,21 @@ export function Layout() {
           ref={mainRef}
           className="main-content"
         >
+          <Box sx={{ mb: 3, maxWidth: 600 }}>
+            <BillingPeriodSelect
+              label="Período de trabajo"
+              optional
+              value={period ?? ''}
+              onChange={(selected) =>
+                setSearchParams((old) => {
+                  const next = new URLSearchParams(old)
+                  if (selected) next.set('billingPeriodId', selected.id)
+                  else next.delete('billingPeriodId')
+                  return next
+                })
+              }
+            />
+          </Box>
           <Outlet />
         </Box>
         <Box component="footer" className="main-footer">

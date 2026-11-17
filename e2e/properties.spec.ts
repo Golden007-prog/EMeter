@@ -287,10 +287,11 @@ test('navegación móvil y teclado, sin desbordamiento de la página', async ({
   await page.getByRole('button', { name: 'Abrir navegación' }).click()
   await page.getByRole('link', { name: 'Documentos / OCR' }).click()
   await expect(
-    page.getByRole('heading', { name: 'Documentos / OCR' }),
+    page.getByRole('heading', { name: 'Documentos y OCR' }),
   ).toBeVisible()
   await expect(page.getByRole('main')).toBeFocused()
-  await page.getByRole('link', { name: 'Configurar propiedades' }).click()
+  await page.getByRole('button', { name: 'Abrir navegación' }).click()
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click()
   await page
     .getByRole('button', { name: 'Nueva propiedad', exact: true })
     .click()

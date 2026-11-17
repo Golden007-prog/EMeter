@@ -181,6 +181,15 @@ input {
   margin-bottom: 26px;
   border-bottom: 1px solid #dce4e7;
 }
+.catalog-tabs > .catalog-tab-link {
+  color: #637b83;
+  font-size: 13px;
+  position: relative;
+  text-decoration: none;
+}
+.catalog-tabs > .catalog-tab-link:hover {
+  color: #126b60;
+}
 .catalog-tabs > .MuiTypography-root {
   font-size: 13px;
   position: relative;

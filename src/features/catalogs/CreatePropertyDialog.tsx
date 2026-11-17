@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -61,8 +61,11 @@ export function CreatePropertyDialog({
   const { ref: nameRef, ...nameField } = form.register('name')
   const { ref: addressRef, ...addressField } = form.register('address')
   const errors = form.formState.errors
-  const organizationId = form.watch('organizationId')
-  const save = form.handleSubmit(async (values) => {
+  const organizationId = useWatch({
+    control: form.control,
+    name: 'organizationId',
+  })
+  const save = async (values: CreatePropertyForm) => {
     if (submitting.current) return
     submitting.current = true
     setSubmitError(null)
@@ -96,7 +99,7 @@ export function CreatePropertyDialog({
     } finally {
       submitting.current = false
     }
-  })
+  }
   return (
     <Dialog
       open={open}
@@ -121,7 +124,11 @@ export function CreatePropertyDialog({
       }}
     >
       <DialogTitle id="create-property-title">Nueva propiedad</DialogTitle>
-      <Box component="form" noValidate onSubmit={save}>
+      <Box
+        component="form"
+        noValidate
+        onSubmit={(event) => void form.handleSubmit(save)(event)}
+      >
         <DialogContent dividers>
           <Stack spacing={2.5}>
             <Typography variant="body2" color="text.secondary">

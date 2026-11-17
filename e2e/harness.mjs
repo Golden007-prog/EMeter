@@ -8,6 +8,10 @@ import { fileURLToPath } from 'node:url'
 import { randomUUID } from 'node:crypto'
 import { chromium } from '@playwright/test'
 
+const webPort = Number(process.env.E2E_WEB_PORT ?? 5173)
+if (!Number.isInteger(webPort) || webPort < 1024 || webPort > 65535)
+  throw new Error('E2E_WEB_PORT inválido')
+const webOrigin = `http://127.0.0.1:${webPort}`
 const root = fileURLToPath(new URL('../', import.meta.url))
 const { values } = parseArgs({
   options: {
@@ -91,7 +95,7 @@ await saveMetadata()
 try {
   if (!existsSync(chromium.executablePath()))
     throw new Error('Falta Chromium. Ejecuta: npx playwright install chromium')
-  await requireFreePort(5173)
+  await requireFreePort(webPort)
   if (values.mode === 'isolated') await requireFreePort(18080)
   else {
     const health = await fetch(`${apiUrl}/health`, {
@@ -103,15 +107,14 @@ try {
       method: 'OPTIONS',
       signal: AbortSignal.timeout(5000),
       headers: {
-        Origin: 'http://127.0.0.1:5173',
+        Origin: webOrigin,
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'content-type',
       },
     })
     if (
       !cors.ok ||
-      cors.headers.get('access-control-allow-origin') !==
-        'http://127.0.0.1:5173'
+      cors.headers.get('access-control-allow-origin') !== webOrigin
     )
       throw new Error(
         'CORS no permite http://127.0.0.1:5173. Revisa Cors:AllowedOrigins en la API.',

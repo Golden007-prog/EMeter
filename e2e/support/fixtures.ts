@@ -1,4 +1,18 @@
 import { test as base, expect } from '@playwright/test'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
+const contract = JSON.parse(
+  readFileSync(path.resolve('docs/openapi/v1.json'), 'utf8'),
+)
+const operations: { method: string; path: string; pattern: RegExp }[] =
+  Object.entries(contract.paths).flatMap(([route, methods]) =>
+    Object.keys(methods as object).map((method) => ({
+      method: method.toUpperCase(),
+      path: route,
+      pattern: new RegExp(`^${route.replace(/\{[^}]+\}/g, '[^/]+')}$`),
+    })),
+  )
 
 // HTTP errors are recorded: some cases intentionally exercise 400/409 recovery.
 export const test = base.extend<{ browserDiagnostics: void }>({
@@ -6,6 +20,7 @@ export const test = base.extend<{ browserDiagnostics: void }>({
     async ({ page }, use, testInfo) => {
       const errors: string[] = []
       const events: object[] = []
+      const covered = new Set<string>()
       page.on('pageerror', (error) => {
         errors.push(error.message)
         events.push({ type: 'pageerror', message: error.message })
@@ -27,6 +42,16 @@ export const test = base.extend<{ browserDiagnostics: void }>({
         }),
       )
       page.on('response', (response) => {
+        if (response.ok()) {
+          const route = new URL(response.url()).pathname
+          for (const operation of operations) {
+            if (
+              operation.method === response.request().method() &&
+              operation.pattern.test(route)
+            )
+              covered.add(`${operation.method} ${operation.path}`)
+          }
+        }
         if (response.status() >= 400)
           events.push({
             type: 'http',
@@ -35,6 +60,13 @@ export const test = base.extend<{ browserDiagnostics: void }>({
           })
       })
       await use()
+      await testInfo.attach('api-operations', {
+        body: JSON.stringify({
+          passed: testInfo.status === 'passed',
+          operations: [...covered].sort(),
+        }),
+        contentType: 'application/json',
+      })
       await testInfo.attach('browser-diagnostics', {
         body: JSON.stringify(events, null, 2),
         contentType: 'application/json',
