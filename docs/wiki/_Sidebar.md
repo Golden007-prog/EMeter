@@ -2,6 +2,7 @@
 
 - [Inicio](Home)
 - [Producto](Producto)
+- [Capturas](Capturas)
 - [Arquitectura](Arquitectura)
 - [Operación](Operacion)
 - [Roadmap](Roadmap)

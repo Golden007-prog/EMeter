@@ -40,6 +40,13 @@ Un paso manual (10 segundos):
 }
 
 Copy-Item (Join-Path $sourceDir '*.md') $workDir -Force
+$imagesSource = Join-Path $sourceDir 'images'
+if (Test-Path $imagesSource) {
+    $imagesTarget = Join-Path $workDir 'images'
+    New-Item -ItemType Directory -Path $imagesTarget -Force | Out-Null
+    Copy-Item (Join-Path $imagesSource '*') $imagesTarget -Force
+    Write-Host "Imágenes copiadas: $((Get-ChildItem $imagesTarget -File | Measure-Object).Count)"
+}
 Push-Location $workDir
 try {
     git add -A

@@ -3,6 +3,10 @@
 Prototipo para **auditar boletas de servicios básicos**: mide, lee la boleta con OCR y —cuando
 la capa de dinero esté completa— detecta cobros irregulares con un monto en disputa.
 
+![Resumen del período](images/periodo.png)
+
+*Captura real del prototipo con datos de demostración. Más pantallas en [Capturas](Capturas).*
+
 ## Estado en una frase
 
 La medición funciona y está probada; la auditoría de cobros todavía no existe. El plan para
@@ -13,6 +17,7 @@ llegar está en el [roadmap](https://github.com/cbinput/EMeter/blob/main/docs/RO
 | Página | Contenido |
 | --- | --- |
 | [Producto](Producto) | Problema, personas, principios y métricas |
+| [Capturas](Capturas) | Pantallas reales de la aplicación |
 | [Arquitectura](Arquitectura) | Monorepo, flujos, persistencia y capa de auditoría |
 | [Operación](Operacion) | Cómo levantar el stack y qué revisar cuando falla |
 | [Roadmap](Roadmap) | Fases, criterios de salida y esfuerzo |
