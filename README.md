@@ -79,7 +79,7 @@ Las pruebas de integración de `Infrastructure` usan Testcontainers y requieren 
 | Fase | Objetivo | Esfuerzo |
 | --- | --- | --- |
 | M0 | Monorepo, CI y documentación | 5 días · **hecho** |
-| M1 | Números confiables: que ninguna cifra mienta | 21 días · **en curso** |
+| M1 | Números confiables: que ninguna cifra mienta | 24 días · **en curso** |
 | M2 | La boleta como dato persistido | 15 días |
 | M3 | Tarifas oficiales con vigencia | 11 días |
 | M4 | Auditoría automática con monto en disputa | 22 días |

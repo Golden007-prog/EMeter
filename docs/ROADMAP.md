@@ -31,7 +31,7 @@ flowchart TD
 | Fase | Objetivo | Criterio de salida | Esfuerzo (días-persona) | Hito |
 | --- | --- | --- | --- | --- |
 | **M0** | Un repositorio, CI y documentación | `main` compila, CI en verde, backlog y tablero publicados | 5 | 17 nov 2026 |
-| **M1** | Que ninguna cifra se lea como un dato que no es | Cero S1 abiertos; desconocido nunca se muestra como cero; unidades validadas por recurso | 21 | 18 dic 2026 |
+| **M1** | Que ninguna cifra se lea como un dato que no es | Cero S1 abiertos; desconocido nunca se muestra como cero; unidades validadas por recurso | 24 | 18 dic 2026 |
 | **M2** | Boleta persistida con cargos y evidencia | Se puede cargar una boleta, verla estructurada y reabrirla sin OCR | 15 | 15 ene 2027 |
 | **M3** | Tarifa oficial vigente por proveedor y comuna | Una boleta resuelve su tarifa aplicable o declara que no la tiene | 11 | 5 feb 2027 |
 | **M4** | Hallazgos con monto en disputa | Una boleta real produce hallazgos explicables y reejecutables | 22 | 12 mar 2027 |
@@ -39,7 +39,7 @@ flowchart TD
 | **M6** | Identidad y aislamiento | Dos usuarios no ven los datos del otro; mutaciones auditadas | 12 | 30 abr 2027 |
 | **M7** | Calidad medida y captura móvil | Precisión publicada por proveedor y campo; captura sin señal | 9 | 21 may 2027 |
 
-Total: **106 días-persona** de ingeniería, incluidos pruebas y documentación. El calendario
+Total: **109 días-persona** de ingeniería, incluidos pruebas y documentación. El calendario
 asume una persona a tiempo parcial con apoyo de agentes; es una referencia, no un compromiso.
 
 ## Fase por fase
@@ -64,7 +64,8 @@ interfaz presenta un dato desconocido como cero.
 #37 idempotencia de confirmación.
 
 *Presentación y uso:* #4 desconocido ≠ cero, #5 unidades y decimales, #6 precarga del OCR,
-#7 estimada vs real, #8 foco y teclado.
+#7 estimada vs real, #8 foco y teclado, #40 estados y mensajes del dominio en español,
+#41 la lista de lecturas identifica medidor y propiedad.
 
 **Salida:** ninguna prueba puede producir un 201 en un período cerrado; ningún importe leído
 por el OCR cambia de valor; ninguna pantalla muestra `0` donde falta el dato.
