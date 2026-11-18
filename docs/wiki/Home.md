@@ -37,3 +37,26 @@ llegar está en el [roadmap](https://github.com/cbinput/EMeter/blob/main/docs/RO
 El backlog vive versionado en `docs/backlog/` y se publica con
 `scripts/github/sync.ps1`. La wiki resume decisiones estables; el detalle técnico vive en
 `apps/api/docs/` y `apps/web/`.
+
+## Estado de apertura
+
+Listo para que alguien lo encuentre y pueda trabajar:
+
+| Elemento | Estado |
+| --- | --- |
+| Licencia MIT, README con estado honesto, guía de contribución | ✅ |
+| Código de conducta y política de seguridad con reporte privado | ✅ |
+| CI de cuatro jobs (API, OCR, web e integración) | ✅ |
+| Wiki con capturas reales y pasos para regenerarlas | ✅ |
+| Roadmap con fases, esfuerzo y criterios de salida | ✅ |
+| 41 issues en 8 hitos, tablero con Fase y Esfuerzo, `good first issue` | ✅ |
+| Semilla de demostración reproducible y script de capturas | ✅ |
+
+Pendiente antes de anunciarlo más allá del repositorio:
+
+- README en inglés para quien no lee español.
+- Decidir qué pasa con los repositorios anteriores (`cbinput/UtilityMeter`), que quedaron atrás
+  del monorepo.
+- Un tag de versión (`v0.1.0`) que marque la línea base.
+- Demo pública: hoy es local por diseño, porque no hay autenticación.
+- Llevar al CI las pruebas de navegador, que hoy sólo se ejecutan a mano.
