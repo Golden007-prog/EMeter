@@ -12,6 +12,7 @@ vive dentro de su carpeta.
 | [Roadmap](ROADMAP.md) | Fases, dependencias, esfuerzo y criterio de salida de cada una |
 | [Arquitectura](ARCHITECTURE.md) | Monorepo, flujos, persistencia y contratos |
 | [Plan de ejecución con DeepSeek](DELIVERY-PLAN.md) | Enrutamiento de modelos, sesiones, presupuesto y guardrails |
+| [Versionado](VERSIONING.md) | Versionado semántico, changelog y proceso de release |
 
 ## Backlog
 

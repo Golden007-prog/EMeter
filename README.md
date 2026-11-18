@@ -1,5 +1,7 @@
 # EMeter · UtilityMeter
 
+**Español** · [English](README.en.md)
+
 [![CI](https://github.com/cbinput/EMeter/actions/workflows/ci.yml/badge.svg)](https://github.com/cbinput/EMeter/actions/workflows/ci.yml)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE.md)
 [![Estado: prototipo](https://img.shields.io/badge/estado-prototipo-orange.svg)](docs/GAP-ANALYSIS.md)

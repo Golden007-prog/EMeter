@@ -109,3 +109,40 @@ jobs:
         run: |
           dotnet test tests/Infrastructure.Tests.Integration/Infrastructure.Tests.Integration.csproj --nologo
           dotnet test tests/Presentation.Tests.Integration/Presentation.Tests.Integration.csproj --nologo
+
+  e2e:
+    name: Web · pruebas de navegador (aislado)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+
+      # El modo aislado levanta la API en memoria (puerto 18080) y el cliente compilado (5173).
+      - name: Pruebas de navegador
+        run: npm run test:e2e
+
+      - name: Conservar reporte ante fallos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/e2e/artifacts
+          retention-days: 7
