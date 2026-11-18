@@ -63,12 +63,13 @@ $effortField = $info.fields.nodes | Where-Object { $_.name -eq 'Esfuerzo (días)
 if (-not $faseField -or -not $effortField) { throw 'Faltan los campos Fase o Esfuerzo (días) en el tablero.' }
 
 # ----------------------------------------------------------------- elementos del tablero
-$items = @{}
-$issueTitles = @{}
-$cursor = $null
-do {
-    $after = if ($cursor) { ", after: `"$cursor`"" } else { '' }
-    $page = (Invoke-GraphQL @"
+function Get-ProjectItems {
+    $found = @{}
+    $titles = @{}
+    $cursor = $null
+    do {
+        $after = if ($cursor) { ", after: `"$cursor`"" } else { '' }
+        $page = (Invoke-GraphQL @"
 query {
   user(login: "$Owner") {
     projectV2(number: $ProjectNumber) {
@@ -80,15 +81,44 @@ query {
   }
 }
 "@).user.projectV2.items
-    foreach ($node in $page.nodes) {
-        if ($node.content.number) {
-            $items[[int]$node.content.number] = $node.id
-            $issueTitles[[int]$node.content.number] = $node.content.title
+        foreach ($node in $page.nodes) {
+            if ($node.content.number) {
+                $found[[int]$node.content.number] = $node.id
+                $titles[[int]$node.content.number] = $node.content.title
+            }
         }
-    }
-    $cursor = $page.pageInfo.endCursor
-} while ($page.pageInfo.hasNextPage)
-Write-Host "Elementos en el tablero: $($items.Count)"
+        $cursor = $page.pageInfo.endCursor
+    } while ($page.pageInfo.hasNextPage)
+    [pscustomobject]@{ Items = $found; Titles = $titles }
+}
+
+$state = Get-ProjectItems
+Write-Host "Elementos en el tablero: $($state.Items.Count)"
+
+# Añade los issues que todavía no están en el tablero (por ejemplo, creados después del alta).
+$restIssues = (gh api "repos/$Owner/$Repo/issues?state=all&per_page=100" | ConvertFrom-Json) |
+    Where-Object { -not $_.pull_request }
+$added = 0
+foreach ($issue in $restIssues) {
+    if ($state.Items.ContainsKey([int]$issue.number)) { continue }
+    $mutation = @"
+mutation {
+  addProjectV2ItemById(input: { projectId: "$projectId", contentId: "$($issue.node_id)" }) {
+    item { id }
+  }
+}
+"@
+    Invoke-GraphQL $mutation | Out-Null
+    $added++
+    Write-Host "  + tablero #$($issue.number)"
+    Start-Sleep -Milliseconds ([int]($DelaySeconds * 1000))
+}
+if ($added -gt 0) {
+    $state = Get-ProjectItems
+    Write-Host "Elementos tras agregar: $($state.Items.Count)"
+}
+$items = $state.Items
+$issueTitles = $state.Titles
 
 # ----------------------------------------------------------------- especificación del backlog
 $specs = @{}

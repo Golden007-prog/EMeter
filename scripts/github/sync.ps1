@@ -127,10 +127,28 @@ if ($DryRun) {
 }
 
 # --------------------------------------------------------------------------- issues
-$existingTitles = @{}
-((gh issue list --repo "$Owner/$Repo" --state all --limit 400 --json title) | ConvertFrom-Json) | ForEach-Object {
-    $existingTitles[$_.title] = $true
+# REST en lugar de GraphQL: `gh issue list/create` consumen la cuota de GraphQL y, cuando se
+# agota, el script confundiría «no existe» con «no pude preguntar».
+function Get-AllIssues {
+    $all = @()
+    for ($page = 1; $page -le 10; $page++) {
+        $batch = gh api "repos/$Owner/$Repo/issues?state=all&per_page=100&page=$page" | ConvertFrom-Json
+        $batch = @($batch | Where-Object { -not $_.pull_request })
+        if ($batch.Count -eq 0) { break }
+        $all += $batch
+        if ($batch.Count -lt 100) { break }
+    }
+    $all
 }
+
+$milestoneNumbers = @{}
+foreach ($key in $existingMilestones.Keys) { $milestoneNumbers[$key] = $existingMilestones[$key] }
+(gh api "repos/$Owner/$Repo/milestones?state=all&per_page=100" | ConvertFrom-Json) | ForEach-Object {
+    $milestoneNumbers[$_.title] = $_.number
+}
+
+$existingTitles = @{}
+foreach ($issue in (Get-AllIssues)) { $existingTitles[$issue.title] = $true }
 
 $created = 0
 foreach ($item in $items) {
@@ -138,18 +156,19 @@ foreach ($item in $items) {
         Write-Host "  = $($item.Title)"
         continue
     }
-    $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) ("emeter-issue-" + [guid]::NewGuid().ToString('N') + '.md')
-    [System.IO.File]::WriteAllText($tempFile, $item.Body, $utf8)
-    $ghArgs = @('issue', 'create', '--repo', "$Owner/$Repo", '--title', $item.Title, '--body-file', $tempFile)
-    if ($item.Milestone) { $ghArgs += @('--milestone', $item.Milestone) }
-    foreach ($label in $item.Labels) { $ghArgs += @('--label', $label) }
-    $url = (& gh @ghArgs) | Select-Object -Last 1
-    Remove-Item $tempFile -Force
-    if (-not $url) { throw "No se pudo crear el issue: $($item.Title)" }
-    $number = [int]($url -replace '.*/', '')
-    if ($item.Phase -eq 0) { gh issue close $number --repo "$Owner/$Repo" --reason completed | Out-Null }
+    $payload = @{ title = $item.Title; body = $item.Body }
+    if ($item.Milestone -and $milestoneNumbers.ContainsKey($item.Milestone)) {
+        $payload.milestone = $milestoneNumbers[$item.Milestone]
+    }
+    if ($item.Labels.Count -gt 0) { $payload.labels = @($item.Labels) }
+    $json = $payload | ConvertTo-Json -Depth 4 -Compress
+    $result = ($json | gh api -X POST "repos/$Owner/$Repo/issues" --input - | Out-String) | ConvertFrom-Json
+    if (-not $result.number) { throw "No se pudo crear el issue: $($item.Title)" }
+    if ($item.Phase -eq 0) {
+        gh api -X PATCH "repos/$Owner/$Repo/issues/$($result.number)" -f state='closed' -f state_reason='completed' | Out-Null
+    }
     $created++
-    Write-Host "  + #$number $($item.Title)"
+    Write-Host "  + #$($result.number) $($item.Title)"
 }
 Write-Host "Issues creados: $created."
 
