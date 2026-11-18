@@ -186,6 +186,83 @@ test('catálogos completos, principal, períodos y versión desde la interfaz', 
   })
 })
 
+test('identifica y filtra medidores y propiedades en las lecturas del período', async ({
+  page,
+  request,
+}) => {
+  const { name, meter, period, property } = await seed(request)
+  const secondProperty = await post(request, 'properties', {
+    name: `${name} B`,
+    address: 'Santiago',
+    resourceType: 'water',
+  })
+  const secondMeter = await post(request, 'meters', {
+    propertyId: secondProperty.id,
+    serialNumber: `${name} B`,
+    resourceType: 'water',
+    unit: 'm3',
+  })
+  for (const [item, owner] of [
+    [meter, property],
+    [secondMeter, secondProperty],
+  ]) {
+    const reading = await post(request, 'readings', {
+      meterId: item.id,
+      propertyId: owner.id,
+      billingPeriodId: period.id,
+      previousReadingId: null,
+      value: 100,
+      unit: 'm3',
+      measuredAt: '2026-10-10T12:00:00-03:00',
+      source: 'Manual',
+      requestId: crypto.randomUUID(),
+    })
+    await post(request, `readings/${reading.id}/review`, {
+      decision: 'Confirmed',
+      expectedVersion: 1,
+      reason: 'Verificar contexto de la lectura',
+    })
+  }
+
+  await page.goto(`/lecturas?by=period&billingPeriodId=${period.id}`)
+  const table = page.getByRole('table', { name: 'Lecturas del contexto' })
+  const meterLink = (id: string) =>
+    table.locator(`a[href^="/configuracion/medidores/${id}"]`)
+  const propertyLink = (id: string) =>
+    table.locator(`a[href^="/configuracion/propiedades/${id}"]`)
+  await expect(meterLink(meter.id)).toHaveText(meter.serialNumber)
+  await expect(meterLink(secondMeter.id)).toHaveText(secondMeter.serialNumber)
+  await expect(propertyLink(property.id)).toHaveText(property.name)
+  await expect(propertyLink(secondProperty.id)).toHaveText(secondProperty.name)
+
+  const meterFilter = page.getByRole('combobox', {
+    name: 'Filtrar por medidor',
+  })
+  await meterFilter.click()
+  await page
+    .getByRole('option', { name: meter.serialNumber, exact: true })
+    .click()
+  await expect(meterLink(secondMeter.id)).toHaveCount(0)
+  await meterFilter.click()
+  await page.getByRole('option', { name: 'Todos los medidores' }).click()
+  await page.getByRole('combobox', { name: 'Filtrar por propiedad' }).click()
+  await page
+    .getByRole('option', { name: secondProperty.name, exact: true })
+    .click()
+  await expect(meterLink(meter.id)).toHaveCount(0)
+  await expect(meterLink(secondMeter.id)).toBeVisible()
+
+  await page.goto(`/periodo?billingPeriodId=${period.id}`)
+  await expect(
+    page.getByRole('link', { name: new RegExp(`${meter.serialNumber} ·`) }),
+  ).toBeVisible()
+  await expect(
+    page.getByRole('link', {
+      name: new RegExp(`${secondMeter.serialNumber} ·`),
+    }),
+  ).toBeVisible()
+})
+
 test('captura, histórico, revisión, corrección, conflicto, anulación y cierre', async ({
   page,
   request,

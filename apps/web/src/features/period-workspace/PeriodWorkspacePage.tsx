@@ -19,6 +19,7 @@ import { QuerySection } from '../../shared/ui/QuerySection'
 import { BillingPeriodSelect } from '../readings/ReadingSelectors'
 import { getBillingPeriod, setBillingPeriodStatus } from '../catalogs/api'
 import { listReadingsByPeriod } from '../readings/api'
+import { useReadingMeterNames } from '../readings/catalogNames'
 import { OperationalReports, SummaryPanel } from '../reports/ReportPanels'
 
 export function PeriodWorkspacePage() {
@@ -66,6 +67,9 @@ function PeriodContent({ id }: { id: string }) {
     queryKey: ['readings', 'period', id],
     queryFn: ({ signal }) => listReadingsByPeriod(id, signal),
   })
+  const confirmed =
+    readings.data?.filter((row) => row.reviewStatus === 'Confirmed') ?? []
+  const meterNames = useReadingMeterNames(confirmed)
   const close = useMutation({
     mutationFn: () => setBillingPeriodStatus(id, 'Closed'),
     onSuccess: async () => {
@@ -120,21 +124,16 @@ function PeriodContent({ id }: { id: string }) {
       <SummaryPanel periodId={id} />
       <OperationalReports periodId={id} />
       <QuerySection title="Lecturas confirmadas" query={readings}>
-        {(rows) => (
+        {() => (
           <Stack>
-            {rows
-              .filter((row) => row.reviewStatus === 'Confirmed')
-              .map((row) => (
-                <Button
-                  key={row.id}
-                  component={Link}
-                  to={`/lecturas/${row.id}`}
-                >
-                  {row.value.toString()} {row.unit} · {row.source}
-                  {row.status === 'Warning' ? ' · Con advertencias' : ''}
-                </Button>
-              ))}
-            {!rows.some((row) => row.reviewStatus === 'Confirmed') && (
+            {confirmed.map((row) => (
+              <Button key={row.id} component={Link} to={`/lecturas/${row.id}`}>
+                {meterNames.get(row.meterId)} · {row.value.toString()}{' '}
+                {row.unit} · {row.source}
+                {row.status === 'Warning' ? ' · Con advertencias' : ''}
+              </Button>
+            ))}
+            {!confirmed.length && (
               <Typography>No hay lecturas confirmadas.</Typography>
             )}
           </Stack>

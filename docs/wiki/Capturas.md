@@ -19,8 +19,11 @@ cierre. Es la pantalla de entrada: responde «¿qué me falta revisar este mes?�
 
 ![Lista de lecturas](images/lecturas.png)
 
-Lecturas del período con origen, estado de revisión y advertencias de cálculo. Hoy la tabla no
-identifica el medidor de cada fila; es el issue de listados de M1.
+La lista del período muestra la serie del medidor y la propiedad de cada lectura, con enlaces a
+sus fichas. Los filtros por medidor y propiedad conservan el período seleccionado. El panel
+«Lecturas confirmadas» también identifica el medidor de cada fila.
+
+La captura corresponde a la vista anterior.
 
 ## Detalle de una lectura
 

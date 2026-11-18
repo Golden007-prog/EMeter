@@ -6,9 +6,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Unreleased]
 
-### Added
+### Fixed
 
-- Nada todavía.
+- La lista de lecturas identifica el medidor y la propiedad, permite filtrar por ambos y muestra la
+  serie del medidor en el resumen de lecturas confirmadas (#41).
 
 ## [0.1.0] - 2026-11-18
 

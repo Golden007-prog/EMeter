@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Chip,
+  Link as TextLink,
   MenuItem,
   Paper,
   Skeleton,
@@ -32,6 +33,7 @@ import {
   listReadingsByProperty,
 } from './api'
 import type { Reading } from './api'
+import { useReadingMeterNames, useReadingPropertyNames } from './catalogNames'
 import { decimalText } from '../../shared/lib/decimal'
 
 const sourceLabels = {
@@ -53,7 +55,15 @@ const contextModes = [
 ] as const
 type ContextMode = (typeof contextModes)[number]['value']
 
-function ReadingRow({ reading }: { reading: Reading }) {
+function ReadingRow({
+  reading,
+  meterName,
+  propertyName,
+}: {
+  reading: Reading
+  meterName?: string
+  propertyName?: string
+}) {
   return (
     <TableRow hover>
       <TableCell>
@@ -68,6 +78,26 @@ function ReadingRow({ reading }: { reading: Reading }) {
             timeStyle: 'short',
           })}
         </Button>
+      </TableCell>
+      <TableCell>
+        <TextLink
+          component={Link}
+          to={`/configuracion/medidores/${reading.meterId}`}
+        >
+          {meterName}
+        </TextLink>
+      </TableCell>
+      <TableCell>
+        {reading.propertyId ? (
+          <TextLink
+            component={Link}
+            to={`/configuracion/propiedades/${reading.propertyId}`}
+          >
+            {propertyName}
+          </TextLink>
+        ) : (
+          'Sin propiedad asignada'
+        )}
       </TableCell>
       <TableCell>
         {decimalText(reading.value)} {reading.unit}
@@ -129,11 +159,31 @@ export function ReadingsPage() {
           : listReadingsByPeriod(activeId, signal),
     enabled: !!activeId,
   })
+  const meterNames = useReadingMeterNames(query.data)
+  const propertyNames = useReadingPropertyNames(query.data)
+  const requestedMeter = params.get('filterMeterId') ?? ''
+  const requestedProperty = params.get('filterPropertyId') ?? ''
+  const meterFilter = meterNames.has(requestedMeter) ? requestedMeter : ''
+  const propertyFilter = propertyNames.has(requestedProperty)
+    ? requestedProperty
+    : ''
+  const updateFilter = (
+    key: 'filterMeterId' | 'filterPropertyId',
+    id: string,
+  ) =>
+    setParams((old) => {
+      const next = new URLSearchParams(old)
+      if (id) next.set(key, id)
+      else next.delete(key)
+      return next
+    })
   const updateContext = (nextMode: ContextMode, id: string) =>
     setParams((old) => {
       const next = new URLSearchParams(old)
       next.delete('meterId')
       next.delete('propertyId')
+      next.delete('filterMeterId')
+      next.delete('filterPropertyId')
       if (nextMode === 'period') next.delete('billingPeriodId')
       next.set('by', nextMode)
       if (id)
@@ -148,7 +198,11 @@ export function ReadingsPage() {
       return next
     })
   const sorted = query.data
-    ?.slice()
+    ?.filter(
+      (reading) =>
+        (!meterFilter || reading.meterId === meterFilter) &&
+        (!propertyFilter || reading.propertyId === propertyFilter),
+    )
     .sort(
       (a, b) =>
         new Date(b.measuredAt).getTime() - new Date(a.measuredAt).getTime(),
@@ -218,6 +272,50 @@ export function ReadingsPage() {
             </Box>
           )}
         </Stack>
+        {!!query.data?.length && (
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            sx={{ mb: 2 }}
+          >
+            {mode !== 'meter' && (
+              <TextField
+                select
+                label="Filtrar por medidor"
+                value={meterFilter}
+                onChange={(event) =>
+                  updateFilter('filterMeterId', event.target.value)
+                }
+                sx={{ width: { xs: '100%', md: 260 } }}
+              >
+                <MenuItem value="">Todos los medidores</MenuItem>
+                {[...meterNames].map(([id, name]) => (
+                  <MenuItem key={id} value={id}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            {mode !== 'property' && (
+              <TextField
+                select
+                label="Filtrar por propiedad"
+                value={propertyFilter}
+                onChange={(event) =>
+                  updateFilter('filterPropertyId', event.target.value)
+                }
+                sx={{ width: { xs: '100%', md: 260 } }}
+              >
+                <MenuItem value="">Todas las propiedades</MenuItem>
+                {[...propertyNames].map(([id, name]) => (
+                  <MenuItem key={id} value={id}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          </Stack>
+        )}
         {created && (
           <Alert severity="success" onClose={() => setCreated(null)}>
             Lectura guardada. Versión {created.version}; advertencias:{' '}
@@ -252,14 +350,18 @@ export function ReadingsPage() {
           </Box>
         ) : !sorted?.length ? (
           <Typography role="status" color="text.secondary" sx={{ py: 5 }}>
-            No hay lecturas para este contexto.
+            {query.data?.length
+              ? 'No hay lecturas para estos filtros.'
+              : 'No hay lecturas para este contexto.'}
           </Typography>
         ) : (
           <TableContainer>
-            <Table aria-label="Lecturas del contexto" sx={{ minWidth: 760 }}>
+            <Table aria-label="Lecturas del contexto" sx={{ minWidth: 960 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Fecha medida</TableCell>
+                  <TableCell>Medidor</TableCell>
+                  <TableCell>Propiedad</TableCell>
                   <TableCell>Lectura acumulada</TableCell>
                   <TableCell>Origen</TableCell>
                   <TableCell>Revisión</TableCell>
@@ -268,7 +370,12 @@ export function ReadingsPage() {
               </TableHead>
               <TableBody>
                 {sorted.map((reading) => (
-                  <ReadingRow key={reading.id} reading={reading} />
+                  <ReadingRow
+                    key={reading.id}
+                    reading={reading}
+                    meterName={meterNames.get(reading.meterId)}
+                    propertyName={propertyNames.get(reading.propertyId ?? '')}
+                  />
                 ))}
               </TableBody>
             </Table>
