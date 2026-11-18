@@ -22,6 +22,7 @@ llegar está en el [roadmap](https://github.com/cbinput/EMeter/blob/main/docs/RO
 | [Operación](Operacion) | Cómo levantar el stack y qué revisar cuando falla |
 | [Roadmap](Roadmap) | Fases, criterios de salida y esfuerzo |
 | [Decisiones](Decisiones) | ADR: monorepo y capa de auditoría |
+| [Contribuir](Contribuir) | Cómo participar, verificar y reportar |
 
 ## Enlaces rápidos
 

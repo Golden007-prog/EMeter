@@ -7,6 +7,7 @@
 - [Operación](Operacion)
 - [Roadmap](Roadmap)
 - [Decisiones](Decisiones)
+- [Contribuir](Contribuir)
 
 ## Enlaces
 

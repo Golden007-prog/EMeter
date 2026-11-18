@@ -1,5 +1,9 @@
 # EMeter · UtilityMeter
 
+[![CI](https://github.com/cbinput/EMeter/actions/workflows/ci.yml/badge.svg)](https://github.com/cbinput/EMeter/actions/workflows/ci.yml)
+[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE.md)
+[![Estado: prototipo](https://img.shields.io/badge/estado-prototipo-orange.svg)](docs/GAP-ANALYSIS.md)
+
 Prototipo para **auditar boletas de servicios básicos**: registra la medición de un medidor de
 agua, electricidad o gas, lee la boleta con OCR, calcula consumos y concilia condominios.
 
@@ -90,6 +94,7 @@ Cómo ejecutarlo con agentes: [docs/DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md).
 
 | Documento | Contenido |
 | --- | --- |
+| [Wiki](https://github.com/cbinput/EMeter/wiki) | Resumen, capturas reales de la aplicación, arquitectura y operación |
 | [Producto](docs/PRODUCT.md) | Problema, personas, principios y métricas |
 | [Brechas](docs/GAP-ANALYSIS.md) | Qué existe, qué falta y qué defectos se reprodujeron |
 | [Roadmap](docs/ROADMAP.md) | Fases, dependencias, esfuerzo y criterios de salida |
@@ -111,6 +116,16 @@ Cómo ejecutarlo con agentes: [docs/DELIVERY-PLAN.md](docs/DELIVERY-PLAN.md).
    que la wiki tenga su primera página creada desde la interfaz.
 5. Un issue por rama y por sesión de trabajo. Ver [CONTRIBUTING.md](CONTRIBUTING.md).
 6. Nada se declara terminado sin una verificación ejecutada.
+
+## Comunidad
+
+Es un proyecto abierto: se agradecen issues con casos reales anonimizados, correcciones de
+cálculo y parsers de nuevos proveedores.
+
+- [Cómo contribuir](CONTRIBUTING.md)
+- [Código de conducta](CODE_OF_CONDUCT.md)
+- [Política de seguridad](SECURITY.md) y [reporte privado de vulnerabilidades](https://github.com/cbinput/EMeter/security/advisories/new)
+- [Capturas de la aplicación](https://github.com/cbinput/EMeter/wiki/Capturas)
 
 ## Licencia
 
